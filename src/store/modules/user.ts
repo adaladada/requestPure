@@ -33,8 +33,29 @@ export const useUserStore = defineStore({
         getLogin(data)
           .then(data => {
             if (data) {
-              setToken(data.data);
-              resolve(data);
+              const fakeData = {
+                // success: true,
+                // data: {
+                //   username: data.data.username,
+                //   roles: ["admin"],
+                //   accessToken: "eyJhbGciOiJIUzUxMiJ9.admin",
+                //   refreshToken: "eyJhbGciOiJIUzUxMiJ9.adminRefresh",
+                //   expires: new Date(Date.now() + 365 * 24 * 60 * 60000)
+                // }
+                code: "00000",
+                msg: "成功",
+                success: true,
+                data: {
+                  username: data.data.username,
+                  password: data.data.password,
+                  roles: ["admin"],
+                  accessToken: "eyJhbGciOiJIUzUxMiJ9.admin",
+                  refreshToken: "eyJhbGciOiJIUzUxMiJ9.adminRefresh",
+                  expires: new Date(Date.now() + 365 * 24 * 60 * 60000)
+                }
+              };
+              setToken(fakeData.data);
+              resolve(fakeData);
             }
           })
           .catch(error => {
