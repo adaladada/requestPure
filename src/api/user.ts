@@ -4,11 +4,14 @@ import { baseUrlApi } from "./utils";
 export type UserResult = {
   code: string;
   msg: string;
+  data: {};
+};
+
+export type AppResult = {
+  code: string;
+  msg: string;
   data: {
-    /** 用户名 */
-    username: string;
-    /** 密码 */
-    password: string;
+    appid: string;
   };
 };
 
@@ -32,4 +35,9 @@ export const getLogin = (data?: object) => {
 /** 刷新token */
 export const refreshTokenApi = (data?: object) => {
   return http.request<RefreshTokenResult>("post", "/refreshToken", { data });
+};
+
+/** appid申请 */
+export const getAppid = (data?: object) => {
+  return http.request<AppResult>("post", baseUrlApi("getAppid"), { data });
 };

@@ -8,6 +8,7 @@ import { getLogin, refreshTokenApi } from "@/api/user";
 import { UserResult, RefreshTokenResult } from "@/api/user";
 import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
 import { type DataInfo, setToken, removeToken, sessionKey } from "@/utils/auth";
+import { message } from "@/utils/message";
 
 export const useUserStore = defineStore({
   id: "pure-user",
@@ -28,34 +29,39 @@ export const useUserStore = defineStore({
       this.roles = roles;
     },
     /** 登入 */
-    async loginByUsername(data) {
+    async loginByUsername(uploadData) {
       return new Promise<UserResult>((resolve, reject) => {
-        getLogin(data)
+        getLogin(uploadData)
           .then(data => {
-            if (data) {
-              const fakeData = {
-                // success: true,
-                // data: {
-                //   username: data.data.username,
-                //   roles: ["admin"],
-                //   accessToken: "eyJhbGciOiJIUzUxMiJ9.admin",
-                //   refreshToken: "eyJhbGciOiJIUzUxMiJ9.adminRefresh",
-                //   expires: new Date(Date.now() + 365 * 24 * 60 * 60000)
-                // }
-                code: "00000",
-                msg: "成功",
-                success: true,
-                data: {
-                  username: data.data.username,
-                  password: data.data.password,
-                  roles: ["admin"],
-                  accessToken: "eyJhbGciOiJIUzUxMiJ9.admin",
-                  refreshToken: "eyJhbGciOiJIUzUxMiJ9.adminRefresh",
-                  expires: new Date(Date.now() + 365 * 24 * 60 * 60000)
-                }
-              };
-              setToken(fakeData.data);
-              resolve(fakeData);
+            if (data.code == "00000") {
+              console.log(data);
+              if (data) {
+                const fakeData = {
+                  // success: true,
+                  // data: {
+                  //   username: data.data.username,
+                  //   roles: ["admin"],
+                  //   accessToken: "eyJhbGciOiJIUzUxMiJ9.admin",
+                  //   refreshToken: "eyJhbGciOiJIUzUxMiJ9.adminRefresh",
+                  //   expires: new Date(Date.now() + 365 * 24 * 60 * 60000)
+                  // }
+                  code: "00000",
+                  msg: "成功",
+                  success: true,
+                  data: {
+                    username: uploadData.username,
+                    roles: ["admin"],
+                    accessToken: "eyJhbGciOiJIUzUxMiJ9.admin",
+                    refreshToken: "eyJhbGciOiJIUzUxMiJ9.adminRefresh",
+                    expires: new Date(Date.now() + 365 * 24 * 60 * 60000)
+                  }
+                };
+                setToken(fakeData.data);
+                resolve(fakeData);
+              }
+            } else {
+              message("用户名或者密码错误", { type: "error" });
+              reject(data.msg);
             }
           })
           .catch(error => {

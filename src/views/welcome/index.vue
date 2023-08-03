@@ -5,49 +5,10 @@ import { reactive } from "vue";
 // import { onMounted } from "vue";
 // import { hasAuth } from "@/router/utils";
 // import { ref } from "vue";
-// import { computed } from "vue";
+import { computed } from "vue";
 import { PureTable } from "@pureadmin/table";
-// 引入这个才能用pure-table
 
 const pageData: any = reactive({
-  // searchState: true,
-  // searchField: [
-  //   {
-  //     type: "select",
-  //     label: "appid",
-  //     placeholder: "请选择appid",
-  //     options: {
-  //       filterable: true,
-  //       keys: {
-  //         prop: "id",
-  //         value: "id",
-  //         label: "name"
-  //       }
-  //     }
-  //   },
-  //   {
-  //     type: "select",
-  //     label: "userid",
-  //     placeholder: "请选择userid",
-  //     options: {
-  //       filterable: true,
-  //       keys: {
-  //         prop: "id",
-  //         value: "id",
-  //         label: "name"
-  //       }
-  //     }
-  //   },
-  //   {
-  //     type: "input",
-  //     label: "查询内容",
-  //     prop: "detail",
-  //     placeholder: "请输入日志内容关键词"
-  //   }
-  // ],
-  // dataSource: {
-  //   detailList: []
-  // },
   formParam: {
     infoForm: {
       msg: ""
@@ -95,6 +56,18 @@ const pageData: any = reactive({
   }
 });
 
+const getPagination = computed((): any => {
+  return pageData.tableParams.mode === "table"
+    ? { rowKey: "id", pagination: pageData.tableParams.pagination }
+    : {
+        rowKey: "id",
+        pagination: {
+          ...pageData.tableParams.pagination,
+          hideOnSinglePage: true
+        }
+      };
+});
+
 defineOptions({
   name: "Welcome"
 });
@@ -102,12 +75,6 @@ defineOptions({
 
 <template>
   <el-card :shadow="'never'">
-    <!-- <el-form -->
-    <!-- <form-search
-        :show="pageData.searchState"
-        :form-field="pageData.searchField"
-        :data-source="pageData.dataSource"
-      /> -->
     <el-form ref="form" :inline="true">
       <el-form-item label="appid:">
         <el-select />
@@ -127,6 +94,7 @@ defineOptions({
       border
       stripe
       :header-row-class-name="'table-header'"
+      v-bind="getPagination"
     />
   </el-card>
 </template>
