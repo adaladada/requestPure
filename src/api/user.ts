@@ -88,10 +88,11 @@ export const reportAppUser = (data?: object) => {
 
 /** 下发appid和userid */
 export const getIdSet = (data?: object) => {
-  return http.request<IdSet>("get", baseUrlApi("idSet"), { data });
+  return http.request<IdSet>("get", baseUrlApi("idSet"), { params: data });
 };
 
 /** 日志查询 */
+/** get方法请求头要带参数 */
 export const sendLogs = (data?: object) => {
-  return http.request<Log>("get", baseUrlApi("sendLog"), { data });
+  return http.request<Log>("get", baseUrlApi("sendLog"), { params: data });
 };

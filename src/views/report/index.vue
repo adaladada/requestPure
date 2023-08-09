@@ -51,6 +51,8 @@ const reportActively = async () => {
       //   dialogVisible: true
       // };
       message("上报成功", { type: "success" });
+      pageData.formParam.appid = "";
+      pageData.formParam.userid = "";
     } else if (res.code === "A0108") {
       message("appid不存在", { type: "error" });
     }

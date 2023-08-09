@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// import { onBeforeMount, reactive } from "vue";
 // import message from "@/utils/message";
 // import { onMounted } from "vue";
 // import { hasAuth } from "@/router/utils";
@@ -27,13 +26,17 @@ const pageData: any = reactive({
     userIdSet: [],
     idSet: []
   },
+  tableData: {
+    list: []
+  },
   tableParams: {
     mode: "table",
     columns: [
       {
         label: "收到时间",
         prop: "receivedTime",
-        width: "120"
+        width: "120",
+        sortable: true
       },
       {
         label: "类型",
@@ -55,25 +58,24 @@ const pageData: any = reactive({
         width: "120"
       }
     ],
-    loading: false,
-    tableData: [],
-    pagination: {
-      pageSize: 10,
-      defaultPageSize: 10,
-      currentPage: 1,
-      background: true,
-      total: 1000
-    }
+    loading: false
+  },
+  pagination: {
+    pageSize: 10,
+    defaultPageSize: 10,
+    currentPage: 1,
+    background: true,
+    total: 1000
   }
 });
 
 const getPagination = computed((): any => {
   return pageData.tableParams.mode === "table"
-    ? { rowKey: "id", pagination: pageData.tableParams.pagination }
+    ? { rowKey: "id", pagination: pageData.pagination }
     : {
         rowKey: "id",
         pagination: {
-          ...pageData.tableParams.pagination,
+          ...pageData.pagination,
           hideOnSinglePage: true
         }
       };
@@ -104,32 +106,32 @@ function changeSelect() {
   }
 }
 
-// function handleSizeChange(val) {
-//   // console.log(pageData.tableParams.pagination.pageSize);
-//   // pageData.pagination.pageSize = val;
-// }
-
-// function handleCurrentPage(val) {
-//   // pageData.pagination.currentPage = val;
-// }
-
 const search = async () => {
+  // console.log(pageData.tableParams.pagination.pageSize);
   await sendLogs({
-    pageSize: pageData.tableParams.pagination.pageSize,
-    pageNum: pageData.tableParams.pagination.currentPage,
+    pageSize: pageData.pagination.pageSize,
+    // pageSize: 2,
+    pageNum: pageData.pagination.currentPage,
     appid: pageData.selectForm.appid,
     userid: pageData.selectForm.userid,
     content: pageData.message
   }).then(res => {
-    console.log(typeof res.data);
+    console.log(res.data.logs);
+    pageData.tableData = {
+      list: res.data.logs
+    };
+    // pageData.pagination = {
+    //   pageSize: pageData.pagination.pageSize,
+    //   defaultPageSize: pageData.pagination.defaultPageSize,
+    //   currentPage: pageData.pagination.currentPage,
+    //   background: pageData.pagination.background,
+    //   total: res.data.total / pageData.pagination.pageSize
+    // };
   });
 };
 
 watch(
-  () => [
-    pageData.tableParams.pagination.pageSize,
-    pageData.tableParams.pagination.currentPage
-  ],
+  () => [pageData.pagination.pageSize, pageData.pagination.currentPage],
   search,
   { deep: true, immediate: true }
   // async () => {
@@ -223,7 +225,7 @@ defineOptions({
       <el-button @click="search()">查询</el-button>
     </el-form>
     <pure-table
-      :data="pageData.tableParams.list"
+      :data="pageData.tableData.list"
       :columns="pageData.tableParams.columns"
       row-key="id"
       border
