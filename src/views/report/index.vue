@@ -1,22 +1,26 @@
 <script setup lang="ts">
 import { reactive } from "vue";
+import { reportAppUser } from "@/api/user";
+import { message } from "@/utils/message";
 defineOptions({
   name: "Report"
 });
 const pageData: any = reactive({
   formParam: {
     userid: "",
-    appid: ""
+    appid: "",
+    dialogVisible: false
   },
-  // ruleForm: {
-  //   userRule: "",
-  //   appRule: ""
-  // },
   rules: {
     userid: [
       {
         required: true,
         message: "userid不能为空",
+        trigger: "blur"
+      },
+      {
+        message: "不能只输入空格",
+        whitespace: true,
         trigger: "blur"
       }
     ],
@@ -25,10 +29,33 @@ const pageData: any = reactive({
         required: true,
         message: "appid不能为空",
         trigger: "blur"
+      },
+      {
+        message: "不能只输入空格",
+        whitespace: true,
+        trigger: "blur"
       }
     ]
   }
 });
+
+const reportActively = async () => {
+  await reportAppUser({
+    appid: pageData.formParam.appid,
+    userid: pageData.formParam.userid
+  }).then(res => {
+    if (res.code === "00000") {
+      // pageData.formParam = {
+      //   appid: pageData.formParam.appid,
+      //   userid: pageData.formParam.userid,
+      //   dialogVisible: true
+      // };
+      message("上报成功", { type: "success" });
+    } else if (res.code === "A0108") {
+      message("appid不存在", { type: "error" });
+    }
+  });
+};
 </script>
 
 <template>
@@ -55,7 +82,19 @@ const pageData: any = reactive({
       </el-col>
     </el-form-item>
     <el-form-item>
-      <el-button>上报</el-button>
+      <el-button @click="reportActively()">上报</el-button>
     </el-form-item>
   </el-form>
+  <!-- <el-dialog title="上报成功" :model-value="pageData.formParam.dialogVisible">
+    <div class="tips">上报成功</div>
+  </el-dialog> -->
+  <!-- <div>
+    <ReDialog v-model="pageData.formParam.dialogVisible"> fff </ReDialog>
+  </div> -->
 </template>
+
+<style lang="scss" scoped>
+.tips {
+  font-size: 20px;
+}
+</style>

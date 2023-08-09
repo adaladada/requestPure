@@ -9,7 +9,7 @@ defineOptions({
 
 const pageData: any = reactive({
   formParam: {
-    appName: "腾讯qq",
+    appName: "",
     appid: "",
     dialogVisible: false
   },
@@ -47,7 +47,7 @@ const applyID = async () => {
         appid: res.data.appid,
         dialogVisible: true
       };
-      console.log(pageData.formParam);
+      // console.log(pageData.formParam);
       // pageData.formParm.dialogVisible = true;
       // pageData.formParam.appid = res.data.appid;
     } else if (res.code === "A0105") {
