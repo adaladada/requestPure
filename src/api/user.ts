@@ -48,6 +48,7 @@ export type Log = {
         type: number;
         timestamp: number;
         msg: string;
+        extra: {};
       }
     ];
     total: number;

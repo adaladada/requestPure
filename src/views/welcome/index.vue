@@ -1,13 +1,8 @@
 <script setup lang="ts">
-// import message from "@/utils/message";
-// import { onMounted } from "vue";
-// import { hasAuth } from "@/router/utils";
-// import { ref } from "vue";
-import { computed, onMounted, watch, reactive } from "vue";
+import { computed, onMounted, watch, reactive, ref } from "vue";
 import { PureTable } from "@pureadmin/table";
 import { getIdSet, sendLogs } from "@/api/user";
-// import { func } from "vue-types";
-// import { getIdSet } from "@/api/user";
+import dayjs from "dayjs";
 
 const pageData: any = reactive({
   // formParam: {
@@ -26,48 +21,78 @@ const pageData: any = reactive({
     userIdSet: [],
     idSet: []
   },
-  tableData: {
-    list: []
-  },
   tableParams: {
     mode: "table",
-    columns: [
-      {
-        label: "收到时间",
-        prop: "receivedTime",
-        width: "120",
-        sortable: true
-      },
-      {
-        label: "类型",
-        prop: "type",
-        width: "120"
-      },
-      {
-        label: "日志内容",
-        prop: "diary"
-      },
-      {
-        label: "appid",
-        prop: "appid",
-        width: "120"
-      },
-      {
-        label: "userid",
-        prop: "userid",
-        width: "120"
-      }
-    ],
+    // columns: [
+    //   {
+    //     type: "expand",
+    //     slot: "expand"
+    //   },
+    //   {
+    //     label: "收到时间",
+    //     prop: "receivedTime",
+    //     width: "150",
+    //     sortable: true
+    //   },
+    //   {
+    //     label: "类型",
+    //     prop: "dataType",
+    //     width: "80"
+    //   },
+    //   {
+    //     label: "日志内容",
+    //     prop: "diary"
+    //   }
+    // {
+    //   label: "appid",
+    //   prop: "appid",
+    //   width: "120"
+    // },
+    // {
+    //   label: "userid",
+    //   prop: "userid",
+    //   width: "120"
+    // }
+    // ],
     loading: false
   },
+  // tableData: {
+  //   dataList: []
+  // },
+  expands: [],
   pagination: {
     pageSize: 10,
     defaultPageSize: 10,
     currentPage: 1,
     background: true,
     total: 1000
+    // 为了展示好看，先展示1000条
   }
 });
+
+const dataList = ref([]);
+
+const columns: TableColumnList = [
+  {
+    type: "expand",
+    slot: "expand"
+  },
+  {
+    label: "收到时间",
+    prop: "receivedTime",
+    width: "160",
+    sortable: true
+  },
+  {
+    label: "类型",
+    prop: "dataType",
+    width: "70"
+  },
+  {
+    label: "日志内容",
+    prop: "diary"
+  }
+];
 
 const getPagination = computed((): any => {
   return pageData.tableParams.mode === "table"
@@ -81,7 +106,7 @@ const getPagination = computed((): any => {
       };
 });
 
-const _loadData = async () => {
+const getSet = async () => {
   await getIdSet().then(res => {
     if (res.code === "00000") {
       const arr = res.data.idArray;
@@ -99,34 +124,66 @@ const _loadData = async () => {
 };
 
 function changeSelect() {
-  for (const item in pageData.selectParam.idSet) {
-    if (item["appid"] === pageData.selectForm.appid) {
-      pageData.selectParam.userid = item["userid"];
+  const arr = pageData.selectParam.idSet;
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i]["appid"] === pageData.selectForm.appid) {
+      pageData.selectParam = {
+        userIdSet: arr[i]["userid"]
+      };
     }
   }
 }
+
+// function getRowKeys(row) {
+// cao, 要自己给row加个id，row其实就是search函数里面的obj
+// 它本身是没有id的
+// return row.id;
+// }
+
+// function expandSelect(row, expandRows) {
+//   console.log(row.id);
+//   pageData.expands = [];
+//   if (expandRows.length > 0) {
+//     pageData.expands.push(row ? row.id : []);
+//   }
+// }
 
 const search = async () => {
   // console.log(pageData.tableParams.pagination.pageSize);
   await sendLogs({
     pageSize: pageData.pagination.pageSize,
-    // pageSize: 2,
     pageNum: pageData.pagination.currentPage,
     appid: pageData.selectForm.appid,
     userid: pageData.selectForm.userid,
     content: pageData.message
   }).then(res => {
-    console.log(res.data.logs);
-    pageData.tableData = {
-      list: res.data.logs
-    };
-    // pageData.pagination = {
-    //   pageSize: pageData.pagination.pageSize,
-    //   defaultPageSize: pageData.pagination.defaultPageSize,
-    //   currentPage: pageData.pagination.currentPage,
-    //   background: pageData.pagination.background,
-    //   total: res.data.total / pageData.pagination.pageSize
+    const num = res.data.total;
+    let flag = 0;
+    const arr = [];
+    for (let i = 0; i < num; i++) {
+      const obj = {
+        id: flag++,
+        // 要自己给row加个id，row其实就是search函数里面的obj
+        // 它本身是没有id的
+        // 不加id的话，点一个行就会所有行都展开，然后关其他行会导致所有行都关不上
+        receivedTime: dayjs(res.data.logs[i].timestamp).format(
+          "YYYY-MM-DD HH:mm:ss"
+        ),
+        dataType: res.data.logs[i].type,
+        diary: res.data.logs[i].msg,
+        appid: res.data.logs[i].appid,
+        userid: res.data.logs[i].userid,
+        path: res.data.logs[i].extra["path"],
+        stack: res.data.logs[i].extra["stack"],
+        userAgent: res.data.logs[i].extra["userAgent"]
+      };
+      arr.push(obj);
+    }
+    dataList.value = arr;
+    // pageData.tableData = {
+    //   dataList: arr
     // };
+    // console.log(pageData.tableData.dataList);
   });
 };
 
@@ -188,7 +245,7 @@ watch(
 );
 
 onMounted(() => {
-  _loadData();
+  getSet();
 });
 
 defineOptions({
@@ -200,7 +257,7 @@ defineOptions({
   <el-card :shadow="'never'">
     <el-form ref="form" :inline="true">
       <el-form-item label="appid:">
-        <el-select v-model="pageData.selectForm.appid" @change="changeSelect">
+        <el-select v-model="pageData.selectForm.appid" @change="changeSelect()">
           <el-option
             v-for="(item, index) in pageData.selectParam.appIdSet"
             :key="index"
@@ -225,14 +282,22 @@ defineOptions({
       <el-button @click="search()">查询</el-button>
     </el-form>
     <pure-table
-      :data="pageData.tableData.list"
-      :columns="pageData.tableParams.columns"
-      row-key="id"
+      :columns="columns"
+      :data="dataList"
       border
       stripe
-      :header-row-class-name="'table-header'"
       v-bind="getPagination"
-    />
+    >
+      <template #expand="{ row }">
+        <div class="m-4">
+          <p class="mb-2">appid: {{ row.appid }}</p>
+          <p class="mb-2">userid: {{ row.userid }}</p>
+          <p class="mb-2">path: {{ row.path }}</p>
+          <p class="mb-2">stack: {{ row.stack }}</p>
+          <p class="mb-2">userAgent: {{ row.userAgent }}</p>
+        </div>
+      </template>
+    </pure-table>
   </el-card>
 </template>
 
