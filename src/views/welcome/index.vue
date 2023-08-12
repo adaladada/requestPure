@@ -1,16 +1,10 @@
 <script setup lang="ts">
-import { computed, onMounted, watch, reactive, ref } from "vue";
+import { onMounted, watch, reactive, ref } from "vue";
 import { PureTable } from "@pureadmin/table";
 import { getIdSet, sendLogs } from "@/api/user";
 import dayjs from "dayjs";
 
 const pageData: any = reactive({
-  // formParam: {
-  //   infoForm: {
-  //     msg: ""
-  //   }
-  // },
-  // 检索关键词
   message: "",
   selectForm: {
     appid: "",
@@ -21,52 +15,17 @@ const pageData: any = reactive({
     userIdSet: [],
     idSet: []
   },
-  tableParams: {
-    mode: "table",
-    // columns: [
-    //   {
-    //     type: "expand",
-    //     slot: "expand"
-    //   },
-    //   {
-    //     label: "收到时间",
-    //     prop: "receivedTime",
-    //     width: "150",
-    //     sortable: true
-    //   },
-    //   {
-    //     label: "类型",
-    //     prop: "dataType",
-    //     width: "80"
-    //   },
-    //   {
-    //     label: "日志内容",
-    //     prop: "diary"
-    //   }
-    // {
-    //   label: "appid",
-    //   prop: "appid",
-    //   width: "120"
-    // },
-    // {
-    //   label: "userid",
-    //   prop: "userid",
-    //   width: "120"
-    // }
-    // ],
-    loading: false
-  },
-  // tableData: {
-  //   dataList: []
+  // tableParams: {
+  //   mode: "table",
+  //   loading: false
   // },
-  expands: [],
   pagination: {
-    pageSize: 10,
-    defaultPageSize: 10,
+    pageSize: 1,
+    pageSizes: [1, 5, 10, 20, 50],
+    // defaultPageSize: 1,
     currentPage: 1,
     background: true,
-    total: 1000
-    // 为了展示好看，先展示1000条
+    total: 0
   }
 });
 
@@ -94,17 +53,17 @@ const columns: TableColumnList = [
   }
 ];
 
-const getPagination = computed((): any => {
-  return pageData.tableParams.mode === "table"
-    ? { rowKey: "id", pagination: pageData.pagination }
-    : {
-        rowKey: "id",
-        pagination: {
-          ...pageData.pagination,
-          hideOnSinglePage: true
-        }
-      };
-});
+// const getPagination = computed((): any => {
+//   return pageData.tableParams.mode === "table"
+//     ? { rowKey: "id", pagination: pageData.pagination }
+//     : {
+//         rowKey: "id",
+//         pagination: {
+//           ...pageData.pagination,
+//           hideOnSinglePage: true
+//         }
+//       };
+// });
 
 const getSet = async () => {
   await getIdSet().then(res => {
@@ -134,20 +93,6 @@ function changeSelect() {
   }
 }
 
-// function getRowKeys(row) {
-// cao, 要自己给row加个id，row其实就是search函数里面的obj
-// 它本身是没有id的
-// return row.id;
-// }
-
-// function expandSelect(row, expandRows) {
-//   console.log(row.id);
-//   pageData.expands = [];
-//   if (expandRows.length > 0) {
-//     pageData.expands.push(row ? row.id : []);
-//   }
-// }
-
 const search = async () => {
   // console.log(pageData.tableParams.pagination.pageSize);
   await sendLogs({
@@ -157,12 +102,11 @@ const search = async () => {
     userid: pageData.selectForm.userid,
     content: pageData.message
   }).then(res => {
-    const num = res.data.total;
-    let flag = 0;
     const arr = [];
-    for (let i = 0; i < num; i++) {
+    for (let i = 0; i < res.data.logs.length; i++) {
+      // console.log(res.data.logs[i].timestamp);
       const obj = {
-        id: flag++,
+        id: i,
         // 要自己给row加个id，row其实就是search函数里面的obj
         // 它本身是没有id的
         // 不加id的话，点一个行就会所有行都展开，然后关其他行会导致所有行都关不上
@@ -180,6 +124,14 @@ const search = async () => {
       arr.push(obj);
     }
     dataList.value = arr;
+    pageData.pagination.total = res.data.total;
+    // pageData.pagination = {
+    //   pageSize: pageData.pagination.pageSize,
+    //   defaultPageSize: pageData.pagination.defaultPageSize,
+    //   currentPage: pageData.pagination.currentPage,
+    //   background: pageData.pagination.background,
+    //   total: num
+    // };
     // pageData.tableData = {
     //   dataList: arr
     // };
@@ -286,7 +238,7 @@ defineOptions({
       :data="dataList"
       border
       stripe
-      v-bind="getPagination"
+      :pagination="pageData.pagination"
     >
       <template #expand="{ row }">
         <div class="m-4">
