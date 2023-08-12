@@ -3,6 +3,7 @@ import { onMounted, watch, reactive, ref } from "vue";
 import { PureTable } from "@pureadmin/table";
 import { getIdSet, sendLogs } from "@/api/user";
 import dayjs from "dayjs";
+import { func } from "vue-types";
 
 const pageData: any = reactive({
   message: "",
@@ -15,13 +16,14 @@ const pageData: any = reactive({
     userIdSet: [],
     idSet: []
   },
+  expands: [],
   // tableParams: {
   //   mode: "table",
   //   loading: false
   // },
   pagination: {
     pageSize: 1,
-    pageSizes: [1, 5, 10, 20, 50],
+    pageSizes: [1, 2, 3, 4, 5],
     // defaultPageSize: 1,
     currentPage: 1,
     background: true,
@@ -93,6 +95,19 @@ function changeSelect() {
   }
 }
 
+function getRowKey(row) {
+  return row.id;
+}
+
+/** 点击行展开/关闭，需要搭配row-key和expand-row-keys使用 */
+function clickRowHandle(row) {
+  if (pageData.expands.includes(row.id)) {
+    pageData.expands.pop(row.id);
+  } else {
+    pageData.expands.push(row.id);
+  }
+}
+
 const search = async () => {
   // console.log(pageData.tableParams.pagination.pageSize);
   await sendLogs({
@@ -125,17 +140,6 @@ const search = async () => {
     }
     dataList.value = arr;
     pageData.pagination.total = res.data.total;
-    // pageData.pagination = {
-    //   pageSize: pageData.pagination.pageSize,
-    //   defaultPageSize: pageData.pagination.defaultPageSize,
-    //   currentPage: pageData.pagination.currentPage,
-    //   background: pageData.pagination.background,
-    //   total: num
-    // };
-    // pageData.tableData = {
-    //   dataList: arr
-    // };
-    // console.log(pageData.tableData.dataList);
   });
 };
 
@@ -239,6 +243,9 @@ defineOptions({
       border
       stripe
       :pagination="pageData.pagination"
+      :row-key="getRowKey"
+      :expand-row-keys="pageData.expands"
+      @row-click="clickRowHandle"
     >
       <template #expand="{ row }">
         <div class="m-4">
