@@ -3,7 +3,6 @@ import { onMounted, watch, reactive, ref } from "vue";
 import { PureTable } from "@pureadmin/table";
 import { getIdSet, sendLogs } from "@/api/user";
 import dayjs from "dayjs";
-import { func } from "vue-types";
 
 const pageData: any = reactive({
   message: "",
@@ -17,13 +16,9 @@ const pageData: any = reactive({
     idSet: []
   },
   expands: [],
-  // tableParams: {
-  //   mode: "table",
-  //   loading: false
-  // },
   pagination: {
-    pageSize: 1,
-    pageSizes: [1, 2, 3, 4, 5],
+    pageSize: 10,
+    pageSizes: [5, 10, 20, 50, 100],
     // defaultPageSize: 1,
     currentPage: 1,
     background: true,
@@ -55,18 +50,6 @@ const columns: TableColumnList = [
   }
 ];
 
-// const getPagination = computed((): any => {
-//   return pageData.tableParams.mode === "table"
-//     ? { rowKey: "id", pagination: pageData.pagination }
-//     : {
-//         rowKey: "id",
-//         pagination: {
-//           ...pageData.pagination,
-//           hideOnSinglePage: true
-//         }
-//       };
-// });
-
 const getSet = async () => {
   await getIdSet().then(res => {
     if (res.code === "00000") {
@@ -86,9 +69,12 @@ const getSet = async () => {
 
 function changeSelect() {
   const arr = pageData.selectParam.idSet;
+  const brr = pageData.selectParam.appIdSet;
+  console.log(brr);
   for (let i = 0; i < arr.length; i++) {
     if (arr[i]["appid"] === pageData.selectForm.appid) {
       pageData.selectParam = {
+        appIdSet: brr,
         userIdSet: arr[i]["userid"]
       };
     }
@@ -119,7 +105,6 @@ const search = async () => {
   }).then(res => {
     const arr = [];
     for (let i = 0; i < res.data.logs.length; i++) {
-      // console.log(res.data.logs[i].timestamp);
       const obj = {
         id: i,
         // 要自己给row加个id，row其实就是search函数里面的obj
@@ -143,30 +128,11 @@ const search = async () => {
   });
 };
 
+// 监听分页器
 watch(
   () => [pageData.pagination.pageSize, pageData.pagination.currentPage],
   search,
   { deep: true, immediate: true }
-  // async () => {
-  //   console.log(
-  //     pageData.tableParams.pagination.pageSize,
-  //     pageData.tableParams.pagination.currentPage
-  //   );
-  //   await sendLogs({
-  //     // pageSize: newPageSize,
-  //     pageSize: 1,
-  //     // pageNum: newCurrentPage,
-  //     pageNum: 1,
-  //     appid: pageData.selectForm.appid,
-  //     // appid: "eDlpdZMY",
-  //     userid: pageData.selectForm.userid,
-  //     content: pageData.message
-  //   }).then(res => {
-  //     if (res.code === "00000") {
-  //       console.log(typeof res.data);
-  //     }
-  //   });
-  // },
   // 看来是因为第二个参数没写对才报错的
   // { deep: true, immediate: true }
   // async function handler(
