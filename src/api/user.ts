@@ -70,6 +70,7 @@ export type RefreshTokenResult = {
 /** 登录 */
 export const getLogin = (data?: object) => {
   return http.request<UserResult>("post", baseUrlApi("login"), { data });
+  // return http.request<UserResult>("post", "login", { data });
 };
 
 /** 刷新token */

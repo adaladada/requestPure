@@ -30,6 +30,9 @@ Object.keys(directives).forEach(key => {
   app.directive(key, (directives as { [key: string]: Directive })[key]);
 });
 
+import infiniteScroll from "vue-infinite-scroll";
+app.component("InfiniteScroll", infiniteScroll);
+
 // 全局注册`@iconify/vue`图标库
 import {
   IconifyIconOffline,

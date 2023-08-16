@@ -70,12 +70,12 @@ const getSet = async () => {
 function changeSelect() {
   const arr = pageData.selectParam.idSet;
   const brr = pageData.selectParam.appIdSet;
-  console.log(brr);
   for (let i = 0; i < arr.length; i++) {
     if (arr[i]["appid"] === pageData.selectForm.appid) {
       pageData.selectParam = {
         appIdSet: brr,
-        userIdSet: arr[i]["userid"]
+        userIdSet: arr[i]["userid"],
+        idSet: arr
       };
     }
   }
@@ -95,7 +95,6 @@ function clickRowHandle(row) {
 }
 
 const search = async () => {
-  // console.log(pageData.tableParams.pagination.pageSize);
   await sendLogs({
     pageSize: pageData.pagination.pageSize,
     pageNum: pageData.pagination.currentPage,
@@ -125,6 +124,11 @@ const search = async () => {
     }
     dataList.value = arr;
     pageData.pagination.total = res.data.total;
+    pageData.message = "";
+    pageData.selectForm = {
+      appid: "",
+      userid: ""
+    };
   });
 };
 
@@ -176,54 +180,59 @@ defineOptions({
 </script>
 
 <template>
-  <el-card :shadow="'never'">
-    <el-form ref="form" :inline="true">
-      <el-form-item label="appid:">
-        <el-select v-model="pageData.selectForm.appid" @change="changeSelect()">
-          <el-option
-            v-for="(item, index) in pageData.selectParam.appIdSet"
-            :key="index"
-            :value="item"
-            :label="item"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="userid:">
-        <el-select v-model="pageData.selectForm.userid">
-          <el-option
-            v-for="(item, index) in pageData.selectParam.userIdSet"
-            :key="index"
-            :value="item"
-            :label="item"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="关键词:">
-        <el-input v-model="pageData.message" />
-      </el-form-item>
-      <el-button @click="search()">查询</el-button>
-    </el-form>
-    <pure-table
-      :columns="columns"
-      :data="dataList"
-      border
-      stripe
-      :pagination="pageData.pagination"
-      :row-key="getRowKey"
-      :expand-row-keys="pageData.expands"
-      @row-click="clickRowHandle"
-    >
-      <template #expand="{ row }">
-        <div class="m-4">
-          <p class="mb-2">appid: {{ row.appid }}</p>
-          <p class="mb-2">userid: {{ row.userid }}</p>
-          <p class="mb-2">path: {{ row.path }}</p>
-          <p class="mb-2">stack: {{ row.stack }}</p>
-          <p class="mb-2">userAgent: {{ row.userAgent }}</p>
-        </div>
-      </template>
-    </pure-table>
-  </el-card>
+  <div>
+    <el-card :shadow="'never'">
+      <el-form ref="form" :inline="true">
+        <el-form-item label="appid:">
+          <el-select
+            v-model="pageData.selectForm.appid"
+            @change="changeSelect()"
+          >
+            <el-option
+              v-for="(item, index) in pageData.selectParam.appIdSet"
+              :key="index"
+              :value="item"
+              :label="item"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="userid:">
+          <el-select v-model="pageData.selectForm.userid">
+            <el-option
+              v-for="(item, index) in pageData.selectParam.userIdSet"
+              :key="index"
+              :value="item"
+              :label="item"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="关键词:">
+          <el-input v-model="pageData.message" />
+        </el-form-item>
+        <el-button @click="search()">查询</el-button>
+      </el-form>
+      <pure-table
+        :columns="columns"
+        :data="dataList"
+        border
+        stripe
+        :pagination="pageData.pagination"
+        :row-key="getRowKey"
+        :expand-row-keys="pageData.expands"
+        @row-click="clickRowHandle"
+      >
+        <template #expand="{ row }">
+          <div class="m-4">
+            <p class="mb-2">appid: {{ row.appid }}</p>
+            <p class="mb-2">userid: {{ row.userid }}</p>
+            <p class="mb-2">path: {{ row.path }}</p>
+            <p class="mb-2">stack: {{ row.stack }}</p>
+            <p class="mb-2">userAgent: {{ row.userAgent }}</p>
+          </div>
+        </template>
+      </pure-table>
+    </el-card>
+  </div>
 </template>
 
 <style lang="scss" scoped>

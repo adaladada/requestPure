@@ -34,17 +34,8 @@ export const useUserStore = defineStore({
         getLogin(uploadData)
           .then(data => {
             if (data.code == "00000") {
-              console.log(data);
               if (data) {
                 const fakeData = {
-                  // success: true,
-                  // data: {
-                  //   username: data.data.username,
-                  //   roles: ["admin"],
-                  //   accessToken: "eyJhbGciOiJIUzUxMiJ9.admin",
-                  //   refreshToken: "eyJhbGciOiJIUzUxMiJ9.adminRefresh",
-                  //   expires: new Date(Date.now() + 365 * 24 * 60 * 60000)
-                  // }
                   code: "00000",
                   msg: "成功",
                   success: true,
@@ -56,11 +47,15 @@ export const useUserStore = defineStore({
                     expires: new Date(Date.now() + 365 * 24 * 60 * 60000)
                   }
                 };
+                message("登录成功", { type: "success" });
                 setToken(fakeData.data);
                 resolve(fakeData);
               }
+            } else if (data.code === "A0100") {
+              message(data.msg, { type: "error" });
+              reject(data.msg);
             } else {
-              message("用户名或者密码错误", { type: "error" });
+              message(data.msg, { type: "error" });
               reject(data.msg);
             }
           })

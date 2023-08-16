@@ -58,30 +58,32 @@ const applyID = async () => {
 </script>
 
 <template>
-  <el-form ref="form" :model="pageData.formParam" :rules="pageData.rules">
-    <el-form-item label="appid申请:" prop="appName">
-      <el-col :span="8">
-        <el-input
-          placeholder="请输入appName"
-          v-model="pageData.formParam.appName"
-        />
-      </el-col>
-      <el-button @click="applyID()">申请</el-button>
-    </el-form-item>
-  </el-form>
-  <el-dialog title="申请成功" :model-value="pageData.formParam.dialogVisible">
-    <div class="tips">
-      为
-      {{ pageData.formParam.appName }} 申请的appid:
-      {{ pageData.formParam.appid }}
-    </div>
-    <!-- <br /> -->
-    <div class="submit">
-      <el-button @click="pageData.formParam = { dialogVisible: false }">
-        确认
-      </el-button>
-    </div>
-  </el-dialog>
+  <div>
+    <el-form ref="form" :model="pageData.formParam" :rules="pageData.rules">
+      <el-form-item label="appid申请:" prop="appName">
+        <el-col :span="8">
+          <el-input
+            placeholder="请输入appName"
+            v-model="pageData.formParam.appName"
+          />
+        </el-col>
+        <el-button @click="applyID()">申请</el-button>
+      </el-form-item>
+    </el-form>
+    <el-dialog title="申请成功" :model-value="pageData.formParam.dialogVisible">
+      <div class="tips">
+        为
+        {{ pageData.formParam.appName }} 申请的appid:
+        {{ pageData.formParam.appid }}
+      </div>
+      <!-- <br /> -->
+      <div class="submit">
+        <el-button @click="pageData.formParam = { dialogVisible: false }">
+          确认
+        </el-button>
+      </div>
+    </el-dialog>
+  </div>
 </template>
 
 <style lang="scss" scoped>

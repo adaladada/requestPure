@@ -61,38 +61,34 @@ const reportActively = async () => {
 </script>
 
 <template>
-  <el-form
-    ref="pageData.formParam"
-    label-width="80px"
-    :model="pageData.formParam"
-    :rules="pageData.rules"
-  >
-    <el-form-item label="appid:" prop="appid">
-      <el-col :span="6">
-        <el-input
-          placeholder="请输入appid"
-          v-model="pageData.formParam.appid"
-        />
-      </el-col>
-    </el-form-item>
-    <el-form-item label="userid:" prop="userid">
-      <el-col :span="6">
-        <el-input
-          placeholder="请输入userid"
-          v-model="pageData.formParam.userid"
-        />
-      </el-col>
-    </el-form-item>
-    <el-form-item>
-      <el-button @click="reportActively()">上报</el-button>
-    </el-form-item>
-  </el-form>
-  <!-- <el-dialog title="上报成功" :model-value="pageData.formParam.dialogVisible">
-    <div class="tips">上报成功</div>
-  </el-dialog> -->
-  <!-- <div>
-    <ReDialog v-model="pageData.formParam.dialogVisible"> fff </ReDialog>
-  </div> -->
+  <div>
+    <el-form
+      ref="pageData.formParam"
+      label-width="80px"
+      :model="pageData.formParam"
+      :rules="pageData.rules"
+    >
+      <el-form-item label="appid:" prop="appid">
+        <el-col :span="6">
+          <el-input
+            placeholder="请输入appid"
+            v-model="pageData.formParam.appid"
+          />
+        </el-col>
+      </el-form-item>
+      <el-form-item label="userid:" prop="userid">
+        <el-col :span="6">
+          <el-input
+            placeholder="请输入userid"
+            v-model="pageData.formParam.userid"
+          />
+        </el-col>
+      </el-form-item>
+      <el-form-item>
+        <el-button @click="reportActively()">上报</el-button>
+      </el-form-item>
+    </el-form>
+  </div>
 </template>
 
 <style lang="scss" scoped>
