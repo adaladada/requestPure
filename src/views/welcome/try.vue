@@ -2,6 +2,7 @@
 import { ref, watch, reactive, onMounted } from "vue";
 import Card from "@/components/Card/index.vue";
 import dayjs from "dayjs";
+import { empty } from "vant";
 import { getIdSet, sendLogs } from "@/api/user";
 
 defineOptions({
@@ -30,16 +31,14 @@ const map = new Map([
 
 // 判断是否滑到底，滑到底为true
 const isBusy = ref(false);
-
+// 判断是否空页面
+const isEmpty = ref(true);
 // 数据列表
 const dataList = ref([]);
-
 // 目前所在的页数
 const page = ref(1);
-
 // 每页展示的条数
 const pageSize = 20;
-
 // 判断是否展开
 const expand = ref(-1);
 
@@ -152,6 +151,7 @@ watch(
       dataList.value = [];
       page.value = 1;
     } else if (pageData.selectForm.appid && pageData.selectForm.userid) {
+      isEmpty.value = false;
       search();
     }
   }
@@ -168,6 +168,7 @@ const popup = async item => {
 };
 
 onMounted(() => {
+  isEmpty.value = true;
   getSet();
   // search();
 });
@@ -214,7 +215,12 @@ onMounted(() => {
       </el-form-item>
       <!-- <el-button @click="search">清空条件</el-button> -->
     </el-form>
-    <div class="container" ref="container" @scroll="scrollHandle">
+    <div
+      class="container"
+      ref="container"
+      @scroll="scrollHandle"
+      v-if="pageData.selectForm.appid && pageData.selectForm.userid"
+    >
       <div
         class="content"
         v-for="item in dataList"
@@ -245,6 +251,17 @@ onMounted(() => {
       </div>
       <div class="loading" v-show="isBusy">loading...</div>
     </div>
+    <el-empty
+      v-else-if="
+        (!pageData.selectForm.appid && pageData.selectForm.userid) ||
+        (pageData.selectForm.appid && !pageData.selectForm.userid)
+      "
+      description="请继续选择appid或userid吧:D~"
+    />
+    <el-empty
+      v-else-if="!pageData.selectForm.appid && !pageData.selectForm.userid"
+      description="哎呀, 还什么都么有O_<~"
+    />
   </el-card>
 </template>
 
@@ -262,14 +279,9 @@ onMounted(() => {
   width: 100%;
   margin: 0 auto 8.1px auto;
   min-height: 80px;
-  // max-height: 300px;
-  // height: (maxHeight + 80) + "px";
 }
 .extra {
   width: 100%;
-  // border: 1px solid rgba(29, 166, 229, 0.689);
-  // border-radius: 0 0 5px 5px;
-  // border-top: white;
   margin: 0 auto;
   min-height: 120px;
   overflow: hidden;
