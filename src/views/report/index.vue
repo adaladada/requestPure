@@ -45,16 +45,11 @@ const reportActively = async () => {
     userid: pageData.formParam.userid
   }).then(res => {
     if (res.code === "00000") {
-      // pageData.formParam = {
-      //   appid: pageData.formParam.appid,
-      //   userid: pageData.formParam.userid,
-      //   dialogVisible: true
-      // };
       message("上报成功", { type: "success" });
       pageData.formParam.appid = "";
       pageData.formParam.userid = "";
-    } else if (res.code === "A0108") {
-      message("appid不存在", { type: "error" });
+    } else {
+      message(res.msg, { type: "error" });
     }
   });
 };
@@ -91,8 +86,4 @@ const reportActively = async () => {
   </div>
 </template>
 
-<style lang="scss" scoped>
-.tips {
-  font-size: 20px;
-}
-</style>
+<style lang="scss" scoped></style>

@@ -33,28 +33,11 @@ dataThemeChange();
 const { title } = useNav();
 
 const ruleForm = reactive({
-  username: "admin1",
-  password: "admin111"
+  username: "",
+  password: ""
+  // username: "admin1",
+  // password: "admin111"
 });
-
-// const onLogin = (formEl: FormInstance | undefined) => {
-//   loading.value = true;
-//   if (!formEl) return;
-//   useUserStoreHook()
-//     .loginByUsername({
-//       username: ruleForm.username,
-//       password: ruleForm.password
-//     })
-//     .then(res => {
-//       initRouter().then(() => {
-//         router.push(getTopMenu(true).path);
-//         message("登陆成功", { type: "success" });
-//       });
-//     })
-//     .finally(() => {
-//       loading.value = false;
-//     });
-// };
 
 const onLogin = async (formEl: FormInstance | undefined) => {
   loading.value = true;

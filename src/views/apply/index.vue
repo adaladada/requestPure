@@ -47,11 +47,8 @@ const applyID = async () => {
         appid: res.data.appid,
         dialogVisible: true
       };
-      // console.log(pageData.formParam);
-      // pageData.formParm.dialogVisible = true;
-      // pageData.formParam.appid = res.data.appid;
-    } else if (res.code === "A0105") {
-      message("appid申请失败", { type: "error" });
+    } else {
+      message(res.msg, { type: "error" });
     }
   });
 };

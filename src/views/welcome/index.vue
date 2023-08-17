@@ -1,54 +1,103 @@
 <script setup lang="ts">
-import { onMounted, watch, reactive, ref } from "vue";
-import { PureTable } from "@pureadmin/table";
-import { getIdSet, sendLogs } from "@/api/user";
+import { ref, watch, reactive, onMounted } from "vue";
+import Card from "@/components/Card/index.vue";
 import dayjs from "dayjs";
+import { getIdSet, sendLogs } from "@/api/user";
+
+defineOptions({
+  name: "Welcome"
+});
 
 const pageData: any = reactive({
   message: "",
   selectForm: {
+    // appid: "EdmBr03B",
     appid: "",
+    // userid: "abc"
     userid: ""
   },
   selectParam: {
     appIdSet: [],
     userIdSet: [],
     idSet: []
-  },
-  expands: [],
-  pagination: {
-    pageSize: 10,
-    pageSizes: [5, 10, 20, 50, 100],
-    // defaultPageSize: 1,
-    currentPage: 1,
-    background: true,
-    total: 0
   }
 });
 
-const dataList = ref([]);
+const map = new Map([
+  [0, "log信息"],
+  [1, "js错误"]
+]);
 
-const columns: TableColumnList = [
-  {
-    type: "expand",
-    slot: "expand"
-  },
-  {
-    label: "收到时间",
-    prop: "receivedTime",
-    width: "160",
-    sortable: true
-  },
-  {
-    label: "类型",
-    prop: "dataType",
-    width: "70"
-  },
-  {
-    label: "日志内容",
-    prop: "diary"
+// 判断是否滑到底，滑到底为true
+const isBusy = ref(false);
+// 判断是否空页面
+const isEmpty = ref(true);
+// 数据列表
+const dataList = ref([]);
+// 目前所在的页数
+const page = ref(1);
+// 每页展示的条数
+const pageSize = 20;
+// 判断是否展开
+const expand = ref(-1);
+
+const scrollHandle = e => {
+  const clientHeight = e.target.clientHeight;
+  // 内容可视区域的高度
+  const scrollHeight = e.target.scrollHeight;
+  // 内容可视区域的高度加上溢出（滚动）的距离
+  const scrollTop = e.target.scrollTop;
+  // 滚动条中y轴上的滚动距离
+  const distance = Math.abs(scrollHeight - scrollTop - clientHeight);
+  // console.log(distance);
+  if (Math.floor(distance) === 0) {
+    console.log(page.value);
+    isBusy.value = true;
+    // dataList.value = [...dataList.value, ...extra];
+    getLog();
+    page.value++;
+  } else {
+    isBusy.value = false;
   }
-];
+};
+
+const getLog = async () => {
+  await sendLogs({
+    pageSize: pageSize,
+    pageNum: page.value,
+    appid: pageData.selectForm.appid,
+    userid: pageData.selectForm.userid,
+    content: pageData.message
+  }).then(res => {
+    const arr = [];
+    for (let i = 0; i < res.data.logs.length; i++) {
+      let val = res.data.logs[i].msg;
+      val = val.replace(
+        pageData.message,
+        `<font color="red">${pageData.message}</font>`
+        // 原来是要用反引号
+      );
+      const obj = {
+        id: i + 1 + pageSize * (page.value - 1),
+        receivedTime: dayjs(res.data.logs[i].timestamp).format(
+          "YYYY-MM-DD HH:mm:ss"
+        ),
+        dataType: map.get(res.data.logs[i].type),
+        // diary: res.data.logs[i].msg
+        diary: val,
+        appid: res.data.logs[i].appid,
+        userid: res.data.logs[i].userid,
+        path: res.data.logs[i].extra["path"],
+        stack: res.data.logs[i].extra["stack"],
+        userAgent: res.data.logs[i].extra["userAgent"]
+      };
+      arr.push(obj);
+    }
+    dataList.value = [...dataList.value, ...arr];
+    // pageData.pagination.total = res.data.total;
+    isBusy.value = false;
+  });
+};
 
 const getSet = async () => {
   await getIdSet().then(res => {
@@ -61,6 +110,7 @@ const getSet = async () => {
       }
       pageData.selectParam = {
         appIdSet: appArr,
+        userIdSet: pageData.selectParam.userIdSet,
         idSet: arr
       };
     }
@@ -70,6 +120,7 @@ const getSet = async () => {
 function changeSelect() {
   const arr = pageData.selectParam.idSet;
   const brr = pageData.selectParam.appIdSet;
+  // console.log(brr);
   for (let i = 0; i < arr.length; i++) {
     if (arr[i]["appid"] === pageData.selectForm.appid) {
       pageData.selectParam = {
@@ -81,165 +132,184 @@ function changeSelect() {
   }
 }
 
-function getRowKey(row) {
-  return row.id;
-}
-
-/** 点击行展开/关闭，需要搭配row-key和expand-row-keys使用 */
-function clickRowHandle(row) {
-  if (pageData.expands.includes(row.id)) {
-    pageData.expands.pop(row.id);
-  } else {
-    pageData.expands.push(row.id);
-  }
-}
-
-const search = async () => {
-  await sendLogs({
-    pageSize: pageData.pagination.pageSize,
-    pageNum: pageData.pagination.currentPage,
-    appid: pageData.selectForm.appid,
-    userid: pageData.selectForm.userid,
-    content: pageData.message
-  }).then(res => {
-    const arr = [];
-    for (let i = 0; i < res.data.logs.length; i++) {
-      const obj = {
-        id: i,
-        // 要自己给row加个id，row其实就是search函数里面的obj
-        // 它本身是没有id的
-        // 不加id的话，点一个行就会所有行都展开，然后关其他行会导致所有行都关不上
-        receivedTime: dayjs(res.data.logs[i].timestamp).format(
-          "YYYY-MM-DD HH:mm:ss"
-        ),
-        dataType: res.data.logs[i].type,
-        diary: res.data.logs[i].msg,
-        appid: res.data.logs[i].appid,
-        userid: res.data.logs[i].userid,
-        path: res.data.logs[i].extra["path"],
-        stack: res.data.logs[i].extra["stack"],
-        userAgent: res.data.logs[i].extra["userAgent"]
-      };
-      arr.push(obj);
-    }
-    dataList.value = arr;
-    pageData.pagination.total = res.data.total;
-    pageData.message = "";
-    pageData.selectForm = {
-      appid: "",
-      userid: ""
-    };
-  });
+const search = () => {
+  dataList.value = [];
+  page.value = 1;
+  getLog();
 };
 
-// 监听分页器
+// 监听搜索框和两个下拉框
 watch(
-  () => [pageData.pagination.pageSize, pageData.pagination.currentPage],
-  search,
-  { deep: true, immediate: true }
-  // 看来是因为第二个参数没写对才报错的
-  // { deep: true, immediate: true }
-  // async function handler(
-  //   [newPageSize, newCurrentPage],
-  //   [oldPageSize, oldCurrentPage]
-  // ) {
-  //   // console.log(typeof newPageSize);
-  //   await sendLogs({
-  //     // pageSize: newPageSize,
-  //     pageSize: 1,
-  //     // pageNum: newCurrentPage,
-  //     pageNum: 1,
-  //     appid: pageData.selectForm.appid,
-  //     // appid: "eDlpdZMY",
-  //     userid: pageData.selectForm.userid,
-  //     content: pageData.message
-  //   }).then(res => {
-  //     if (res.code === "00000") {
-  //       console.log(typeof res.data);
-  //       // pageData.tableParams = {
-  //       //   tableData: res.data.logs
-  //       // };
-  //       // pageData.tableParams.pagination = {
-  //       //   total: res.data.total
-  //       // };
-  //     }
-  //   });
-  // },
-  // {
-  //   immediate: true
-  // }
+  () => [
+    pageData.selectForm.appid,
+    pageData.selectForm.userid,
+    pageData.message
+  ],
+  () => {
+    if (!pageData.selectForm.appid || !pageData.selectForm.userid) {
+      dataList.value = [];
+      page.value = 1;
+    } else if (pageData.selectForm.appid && pageData.selectForm.userid) {
+      isEmpty.value = false;
+      search();
+    }
+  }
 );
 
-onMounted(() => {
-  getSet();
-});
+const popup = async item => {
+  // expand.value = !expand.value;
+  if (expand.value === item.id) {
+    expand.value = -1;
+    return;
+  }
+  expand.value = item.id;
+  // maxHeight.value = 300;
+};
 
-defineOptions({
-  name: "Welcome"
+onMounted(() => {
+  isEmpty.value = true;
+  getSet();
 });
 </script>
 
 <template>
-  <div>
-    <el-card :shadow="'never'">
-      <el-form ref="form" :inline="true">
-        <el-form-item label="appid:">
-          <el-select
-            v-model="pageData.selectForm.appid"
-            @change="changeSelect()"
-          >
-            <el-option
-              v-for="(item, index) in pageData.selectParam.appIdSet"
-              :key="index"
-              :value="item"
-              :label="item"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="userid:">
-          <el-select v-model="pageData.selectForm.userid">
-            <el-option
-              v-for="(item, index) in pageData.selectParam.userIdSet"
-              :key="index"
-              :value="item"
-              :label="item"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="关键词:">
-          <el-input v-model="pageData.message" />
-        </el-form-item>
-        <el-button @click="search()">查询</el-button>
-      </el-form>
-      <pure-table
-        :columns="columns"
-        :data="dataList"
-        border
-        stripe
-        :pagination="pageData.pagination"
-        :row-key="getRowKey"
-        :expand-row-keys="pageData.expands"
-        @row-click="clickRowHandle"
+  <el-card :shadow="'never'">
+    <el-form ref="form" :inline="true">
+      <el-form-item label="appid:">
+        <el-select
+          v-model="pageData.selectForm.appid"
+          @change="changeSelect()"
+          clearable
+        >
+          <el-option
+            v-for="(item, index) in pageData.selectParam.appIdSet"
+            :key="index"
+            :value="item"
+            :label="item"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="userid:">
+        <el-select v-model="pageData.selectForm.userid" clearable>
+          <el-option
+            v-for="(item, index) in pageData.selectParam.userIdSet"
+            :key="index"
+            :value="item"
+            :label="item"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="关键词:">
+        <el-input
+          placeholder="请输入想要查询的关键词"
+          v-model="pageData.message"
+          clearable
+        />
+      </el-form-item>
+      <!-- <el-button @click="search">清空条件</el-button> -->
+    </el-form>
+    <div
+      class="container"
+      ref="container"
+      @scroll="scrollHandle"
+      v-if="dataList.length > 0"
+    >
+      <div
+        class="content"
+        v-for="item in dataList"
+        :key="item.id"
+        @click="popup(item)"
       >
-        <template #expand="{ row }">
-          <div class="m-4">
-            <p class="mb-2">appid: {{ row.appid }}</p>
-            <p class="mb-2">userid: {{ row.userid }}</p>
-            <p class="mb-2">path: {{ row.path }}</p>
-            <p class="mb-2">stack: {{ row.stack }}</p>
-            <p class="mb-2">userAgent: {{ row.userAgent }}</p>
+        <!-- <div style="width: 100%; height: 1rem">{{ item }}</div> -->
+        <Card>
+          <template #type> 日志类型: {{ item.dataType }} </template>
+          <template #time>
+            {{ item.receivedTime }}
+          </template>
+          <template #diaryID> 日志id:{{ item.id }} </template>
+          <template #content>
+            <!-- {{ item.diary }} -->
+            <span v-html="item.diary" />
+          </template>
+        </Card>
+        <div v-show="expand === item.id" class="extra">
+          <div class="extraContent">
+            <p>appid: {{ item.appid }}</p>
+            <p>userid: {{ item.userid }}</p>
+            <p>path: {{ item.path }}</p>
+            <p>stack: {{ item.stack }}</p>
+            <p>userAgent: {{ item.userAgent }}</p>
           </div>
-        </template>
-      </pure-table>
-    </el-card>
-  </div>
+        </div>
+      </div>
+      <div class="loading" v-show="isBusy">loading...</div>
+    </div>
+    <el-empty
+      v-else-if="
+        (!pageData.selectForm.appid && pageData.selectForm.userid) ||
+        (pageData.selectForm.appid && !pageData.selectForm.userid)
+      "
+      description="要选完两个id才能查看哦~\(≧▽≦)/~"
+    />
+    <el-empty
+      v-else-if="
+        pageData.selectForm.appid &&
+        pageData.selectForm.userid &&
+        pageData.message &&
+        dataList.length === 0
+      "
+      description="啊嘞嘞没有查询到结果呢O^O"
+    />
+    <el-empty
+      v-else-if="
+        !pageData.selectForm.appid &&
+        !pageData.selectForm.userid &&
+        pageData.message
+      "
+      description="emmm...先选好appid和userid再来查询吧ヾ(❀╹◡╹)ﾉﾞ❀~"
+    />
+    <el-empty
+      v-else-if="
+        !pageData.selectForm.appid &&
+        !pageData.selectForm.userid &&
+        !pageData.message
+      "
+      description="哎呀, 还什么都么有O_<~"
+    />
+  </el-card>
 </template>
 
 <style lang="scss" scoped>
+.container {
+  height: 500px;
+  width: 1150px;
+  margin: 0 auto;
+  overflow: auto;
+}
+.content {
+  border: 1px solid rgba(128, 128, 128, 0.272);
+  border-radius: 5px;
+  width: 100%;
+  margin: 0 auto 8.1px auto;
+  min-height: 80px;
+}
+.extra {
+  width: 100%;
+  margin: 0 auto;
+  min-height: 120px;
+  overflow: hidden;
+  transition: max-height 1s ease-out;
+  position: relative;
+  float: top;
+  top: 50px;
+  margin-bottom: 55px;
+}
+.extraContent {
+  padding-left: 12px;
+}
 .el-input {
   width: 380px;
 }
-
 .el-button {
   margin-bottom: 19px;
 }
