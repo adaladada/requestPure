@@ -13,7 +13,8 @@ export default {
       name: "Apply",
       component: () => import("@/views/apply/index.vue"),
       meta: {
-        title: "appid申请"
+        title: "appid申请",
+        keepAlive: true
       }
     }
   ]

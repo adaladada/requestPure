@@ -1,6 +1,8 @@
 <script setup lang="ts">
+// import { useGlobal } from "@pureadmin/utils";
 import { ref, watch, reactive, onMounted } from "vue";
 import Card from "@/components/Card/index.vue";
+// import { usePermissionStoreHook } from "@/store/modules/permission";
 import { throttle } from "@pureadmin/utils";
 import dayjs from "dayjs";
 import { getIdSet, sendLogs } from "@/api/user";
@@ -83,9 +85,10 @@ const getLog = async () => {
         let val = res.data.logs[i].msg;
         val = val.replace(
           pageData.message,
-          // `<span class="highlight">${pageData.message}</span>`
+          `<span style="background-color: yellow; font-weight:bold">${pageData.message}</span>`
           // `<span :style="{ backgroundColor: 'yellow' }">${pageData.message}</span>`
-          `<font color="red">${pageData.message}</font>`
+          // 不需要大括号
+          // `<font color="red">${pageData.message}</font>`
           // 原来是要用反引号
         );
         const obj = {
@@ -190,115 +193,117 @@ onMounted(() => {
 </script>
 
 <template>
-  <el-card :shadow="'never'">
-    <el-form ref="form" :inline="true">
-      <el-form-item label="appid:">
-        <el-select
-          v-model="pageData.selectForm.appid"
-          @change="changeSelect()"
-          clearable
-        >
-          <el-option
-            v-for="(item, index) in pageData.selectParam.appIdSet"
-            :key="index"
-            :value="item"
-            :label="item"
+  <div>
+    <el-card :shadow="'never'">
+      <el-form ref="form" :inline="true">
+        <el-form-item label="appid:">
+          <el-select
+            v-model="pageData.selectForm.appid"
+            @change="changeSelect()"
+            clearable
+          >
+            <el-option
+              v-for="(item, index) in pageData.selectParam.appIdSet"
+              :key="index"
+              :value="item"
+              :label="item"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="userid:">
+          <el-select v-model="pageData.selectForm.userid" clearable>
+            <el-option
+              v-for="(item, index) in pageData.selectParam.userIdSet"
+              :key="index"
+              :value="item"
+              :label="item"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="关键词:">
+          <el-input
+            placeholder="请输入想要查询的关键词"
+            v-model="pageData.message"
+            clearable
           />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="userid:">
-        <el-select v-model="pageData.selectForm.userid" clearable>
-          <el-option
-            v-for="(item, index) in pageData.selectParam.userIdSet"
-            :key="index"
-            :value="item"
-            :label="item"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="关键词:">
-        <el-input
-          placeholder="请输入想要查询的关键词"
-          v-model="pageData.message"
-          clearable
-        />
-      </el-form-item>
-      <!-- <el-button @click="search">清空条件</el-button> -->
-    </el-form>
-    <div
-      class="container"
-      ref="container"
-      @scroll="throttleHandle"
-      v-if="dataList.length > 0"
-    >
+        </el-form-item>
+        <!-- <el-button @click="search">清空条件</el-button> -->
+      </el-form>
       <div
-        class="content"
-        v-for="item in dataList"
-        :key="item.id"
-        @click="popup(item)"
+        class="container"
+        ref="container"
+        @scroll="throttleHandle"
+        v-if="dataList.length > 0"
       >
-        <!-- <div style="width: 100%; height: 1rem">{{ item }}</div> -->
-        <Card>
-          <template #type> 日志类型: {{ item.dataType }} </template>
-          <template #time>
-            {{ item.receivedTime }}
-          </template>
-          <template #diaryID> 日志id:{{ item.id }} </template>
-          <template #content>
-            <!-- {{ item.diary }} -->
-            <span v-html="item.diary" />
-          </template>
-        </Card>
-        <div v-show="expand === item.id" class="extra">
-          <div class="extraContent">
-            <p>appid: {{ item.appid }}</p>
-            <p>userid: {{ item.userid }}</p>
-            <p>path: {{ item.path }}</p>
-            <p>stack: {{ item.stack }}</p>
-            <p>userAgent: {{ item.userAgent }}</p>
+        <div
+          class="content"
+          v-for="item in dataList"
+          :key="item.id"
+          @click="popup(item)"
+        >
+          <!-- <div style="width: 100%; height: 1rem">{{ item }}</div> -->
+          <Card>
+            <template #type> 日志类型: {{ item.dataType }} </template>
+            <template #time>
+              {{ item.receivedTime }}
+            </template>
+            <template #diaryID> 日志id:{{ item.id }} </template>
+            <template #content>
+              <!-- {{ item.diary }} -->
+              <span v-html="item.diary" />
+            </template>
+          </Card>
+          <div v-show="expand === item.id" class="extra">
+            <div class="extraContent">
+              <p>appid: {{ item.appid }}</p>
+              <p>userid: {{ item.userid }}</p>
+              <p>path: {{ item.path }}</p>
+              <p>stack: {{ item.stack }}</p>
+              <p>userAgent: {{ item.userAgent }}</p>
+            </div>
           </div>
         </div>
+        <div class="contain-ending">
+          <div class="loading" v-if="isBusy">loading...</div>
+        </div>
+        <div class="contain-ending">
+          <div class="ending" v-if="isEnd">已经到底部拉(≧∇≦*)~</div>
+        </div>
       </div>
-      <div class="contain-ending">
-        <div class="loading" v-if="isBusy">loading...</div>
-      </div>
-      <div class="contain-ending">
-        <div class="ending" v-if="isEnd">已经到底部拉(≧∇≦*)~</div>
-      </div>
-    </div>
-    <el-empty
-      v-else-if="
-        (!pageData.selectForm.appid && pageData.selectForm.userid) ||
-        (pageData.selectForm.appid && !pageData.selectForm.userid)
-      "
-      description="要选完两个id才能查看哦~\(≧▽≦)/~"
-    />
-    <el-empty
-      v-else-if="
-        pageData.selectForm.appid &&
-        pageData.selectForm.userid &&
-        pageData.message &&
-        dataList.length === 0
-      "
-      description="啊嘞嘞没有查询到结果呢O^O"
-    />
-    <el-empty
-      v-else-if="
-        !pageData.selectForm.appid &&
-        !pageData.selectForm.userid &&
-        pageData.message
-      "
-      description="emmm...先选好appid和userid再来查询吧ヾ(❀╹◡╹)ﾉﾞ❀~"
-    />
-    <el-empty
-      v-else-if="
-        !pageData.selectForm.appid &&
-        !pageData.selectForm.userid &&
-        !pageData.message
-      "
-      description="哎呀, 还什么都么有O_<~"
-    />
-  </el-card>
+      <el-empty
+        v-else-if="
+          (!pageData.selectForm.appid && pageData.selectForm.userid) ||
+          (pageData.selectForm.appid && !pageData.selectForm.userid)
+        "
+        description="要选完两个id才能查看哦~\(≧▽≦)/~"
+      />
+      <el-empty
+        v-else-if="
+          pageData.selectForm.appid &&
+          pageData.selectForm.userid &&
+          pageData.message &&
+          dataList.length === 0
+        "
+        description="啊嘞嘞没有查询到结果呢O^O"
+      />
+      <el-empty
+        v-else-if="
+          !pageData.selectForm.appid &&
+          !pageData.selectForm.userid &&
+          pageData.message
+        "
+        description="emmm...先选好appid和userid再来查询吧ヾ(❀╹◡╹)ﾉﾞ❀~"
+      />
+      <el-empty
+        v-else-if="
+          !pageData.selectForm.appid &&
+          !pageData.selectForm.userid &&
+          !pageData.message
+        "
+        description="哎呀, 还什么都么有O_<~"
+      />
+    </el-card>
+  </div>
 </template>
 
 <style lang="scss" scoped>
@@ -338,6 +343,7 @@ onMounted(() => {
 .el-card {
   height: 600px;
 }
+
 .highlight {
   font-weight: bold;
   background-color: yellow;

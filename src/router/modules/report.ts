@@ -13,7 +13,8 @@ export default {
       name: "Report",
       component: () => import("@/views/report/index.vue"),
       meta: {
-        title: "下发日志上报"
+        title: "下发日志上报",
+        keepAlive: true
       }
     }
   ]
