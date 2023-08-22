@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, reactive, onMounted } from "vue";
 import Card from "@/components/Card/index.vue";
+import { throttle } from "@pureadmin/utils";
 import dayjs from "dayjs";
 import { getIdSet, sendLogs } from "@/api/user";
 
@@ -31,7 +32,7 @@ const map = new Map([
 // 判断是否滑到底，滑到底为true
 const isBusy = ref(false);
 // 判断是否空页面
-const isEmpty = ref(true);
+// const isEmpty = ref(true);
 // 数据列表
 const dataList = ref([]);
 // 目前所在的页数
@@ -40,6 +41,8 @@ const page = ref(1);
 const pageSize = 20;
 // 判断是否展开
 const expand = ref(-1);
+// 判断数据是否展示完了
+const isEnd = ref(false);
 
 const scrollHandle = e => {
   const clientHeight = e.target.clientHeight;
@@ -50,17 +53,18 @@ const scrollHandle = e => {
   // 滚动条中y轴上的滚动距离
   const distance = Math.abs(scrollHeight - scrollTop - clientHeight);
   // console.log(distance);
-  if (Math.floor(distance) === 0) {
-    console.log(page.value);
+  if (Math.floor(distance) === 0 && !isEnd.value) {
+    // console.log(page.value);
     isBusy.value = true;
-    // dataList.value = [...dataList.value, ...extra];
-    getLog();
-    page.value++;
-    // isBusy.value = false;
+    setTimeout(() => {
+      getLog();
+    }, 1000);
   } else {
     isBusy.value = false;
   }
 };
+
+const throttleHandle = throttle(scrollHandle, 1000);
 
 const getLog = async () => {
   await sendLogs({
@@ -71,35 +75,40 @@ const getLog = async () => {
     content: pageData.message
   }).then(res => {
     const arr = [];
-    for (let i = 0; i < res.data.logs.length; i++) {
-      let val = res.data.logs[i].msg;
-      val = val.replace(
-        pageData.message,
-        // `<span class='hightlight'>${pageData.message}</span>`
-        `<font color="red">${pageData.message}</font>`
-        // 原来是要用反引号
-      );
-      const obj = {
-        id: i + 1 + pageSize * (page.value - 1),
-        receivedTime: dayjs(res.data.logs[i].timestamp).format(
-          "YYYY-MM-DD HH:mm:ss"
-        ),
-        dataType: map.get(res.data.logs[i].type),
-        // diary: res.data.logs[i].msg
-        diary: val,
-        appid: res.data.logs[i].appid,
-        userid: res.data.logs[i].userid,
-        path: res.data.logs[i].extra["path"],
-        stack: res.data.logs[i].extra["stack"],
-        userAgent: res.data.logs[i].extra["userAgent"]
-      };
-      arr.push(obj);
+    if (res.data.logs.length === 0) {
+      isEnd.value = true;
+      console.log(page.value);
+    } else {
+      for (let i = 0; i < res.data.logs.length; i++) {
+        let val = res.data.logs[i].msg;
+        val = val.replace(
+          pageData.message,
+          // `<span class="highlight">${pageData.message}</span>`
+          // `<span :style="{ backgroundColor: 'yellow' }">${pageData.message}</span>`
+          `<font color="red">${pageData.message}</font>`
+          // 原来是要用反引号
+        );
+        const obj = {
+          id: i + 1 + pageSize * (page.value - 1),
+          receivedTime: dayjs(res.data.logs[i].timestamp).format(
+            "YYYY-MM-DD HH:mm:ss"
+          ),
+          dataType: map.get(res.data.logs[i].type),
+          // diary: res.data.logs[i].msg
+          diary: val,
+          appid: res.data.logs[i].appid,
+          userid: res.data.logs[i].userid,
+          path: res.data.logs[i].extra["path"],
+          stack: res.data.logs[i].extra["stack"],
+          userAgent: res.data.logs[i].extra["userAgent"]
+        };
+        arr.push(obj);
+      }
+      isBusy.value = false;
+      dataList.value = [...dataList.value, ...arr];
+      page.value++;
     }
     // isBusy.value = false;
-    dataList.value = [...dataList.value, ...arr];
-    isBusy.value = false;
-    // console.log(dataList.value);
-    // pageData.pagination.total = res.data.total;
   });
 };
 
@@ -125,6 +134,9 @@ function changeSelect() {
   const arr = pageData.selectParam.idSet;
   const brr = pageData.selectParam.appIdSet;
   // console.log(brr);
+  if (!pageData.selectForm.appid) {
+    pageData.selectForm.userid = "";
+  }
   for (let i = 0; i < arr.length; i++) {
     if (arr[i]["appid"] === pageData.selectForm.appid) {
       pageData.selectParam = {
@@ -153,8 +165,9 @@ watch(
     if (!pageData.selectForm.appid || !pageData.selectForm.userid) {
       dataList.value = [];
       page.value = 1;
+      isEnd.value = false;
     } else if (pageData.selectForm.appid && pageData.selectForm.userid) {
-      isEmpty.value = false;
+      // isEmpty.value = false;
       search();
     }
   }
@@ -171,7 +184,7 @@ const popup = async item => {
 };
 
 onMounted(() => {
-  isEmpty.value = true;
+  // isEmpty.value = true;
   getSet();
 });
 </script>
@@ -215,7 +228,7 @@ onMounted(() => {
     <div
       class="container"
       ref="container"
-      @scroll="scrollHandle"
+      @scroll="throttleHandle"
       v-if="dataList.length > 0"
     >
       <div
@@ -246,7 +259,12 @@ onMounted(() => {
           </div>
         </div>
       </div>
-      <div class="loading" v-show="isBusy">loading...</div>
+      <div class="contain-ending">
+        <div class="loading" v-if="isBusy">loading...</div>
+      </div>
+      <div class="contain-ending">
+        <div class="ending" v-if="isEnd">已经到底部拉(≧∇≦*)~</div>
+      </div>
     </div>
     <el-empty
       v-else-if="
@@ -318,10 +336,21 @@ onMounted(() => {
   margin-bottom: 19px;
 }
 .el-card {
-  height: 550px;
+  height: 600px;
 }
-.hightlight {
+.highlight {
   font-weight: bold;
   background-color: yellow;
+}
+.contain-ending {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.ending {
+  color: rgba(128, 128, 128, 0.81);
+}
+.loading {
+  color: grey;
 }
 </style>
