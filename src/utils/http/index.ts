@@ -13,6 +13,8 @@ import { stringify } from "qs";
 import NProgress from "../progress";
 import { getToken, formatToken } from "@/utils/auth";
 import { useUserStoreHook } from "@/store/modules/user";
+import { ElMessageBox } from "element-plus";
+// import { message } from "@/utils/message";
 const { VITE_API } = import.meta.env;
 
 // 相关配置请参考：www.axios-js.com/zh-cn/docs/#axios-request-config-1
@@ -135,6 +137,18 @@ class PureHttp {
           PureHttp.initConfig.beforeResponseCallback(response);
           return response.data;
         }
+        // 登陆过期
+        const code = response.data.code;
+        // const msg = response.data.msg;
+        if (code === "A0101") {
+          ElMessageBox.confirm("登陆过期，请重新登陆", "系统提示", {
+            confirmButtonText: "确认",
+            cancelButtonText: "取消",
+            type: "warning"
+          }).then(() => {
+            useUserStoreHook().logOut();
+          });
+        }
         return response.data;
       },
       (error: PureHttpError) => {
@@ -143,6 +157,7 @@ class PureHttp {
         // 关闭进度条动画
         NProgress.done();
         // 所有的响应异常 区分来源为取消请求/非取消请求
+        // if (error.response && error.response.code === "A0101")
         return Promise.reject($error);
       }
     );

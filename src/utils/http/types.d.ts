@@ -15,10 +15,12 @@ export type RequestMethods = Extract<
 >;
 
 export interface PureHttpError extends AxiosError {
+  // code: string;
   isCancelRequest?: boolean;
 }
 
 export interface PureHttpResponse extends AxiosResponse {
+  // code: string;
   config: PureHttpRequestConfig;
 }
 

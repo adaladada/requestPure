@@ -56,6 +56,7 @@ const scrollHandle = e => {
     // dataList.value = [...dataList.value, ...extra];
     getLog();
     page.value++;
+    // isBusy.value = false;
   } else {
     isBusy.value = false;
   }
@@ -74,6 +75,7 @@ const getLog = async () => {
       let val = res.data.logs[i].msg;
       val = val.replace(
         pageData.message,
+        // `<span class='hightlight'>${pageData.message}</span>`
         `<font color="red">${pageData.message}</font>`
         // 原来是要用反引号
       );
@@ -93,9 +95,11 @@ const getLog = async () => {
       };
       arr.push(obj);
     }
+    // isBusy.value = false;
     dataList.value = [...dataList.value, ...arr];
-    // pageData.pagination.total = res.data.total;
     isBusy.value = false;
+    // console.log(dataList.value);
+    // pageData.pagination.total = res.data.total;
   });
 };
 
@@ -312,5 +316,12 @@ onMounted(() => {
 }
 .el-button {
   margin-bottom: 19px;
+}
+.el-card {
+  height: 550px;
+}
+.hightlight {
+  font-weight: bold;
+  background-color: yellow;
 }
 </style>
