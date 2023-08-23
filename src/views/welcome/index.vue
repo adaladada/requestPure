@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, reactive, onMounted } from "vue";
 import Card from "@/components/Card/index.vue";
-import { throttle } from "@pureadmin/utils";
+import { throttle, debounce } from "@pureadmin/utils";
 import dayjs from "dayjs";
 import { getIdSet, sendLogs } from "@/api/user";
 import Cookies from "js-cookie";
@@ -65,6 +65,18 @@ const scrollHandle = e => {
 
 const throttleHandle = throttle(scrollHandle, 1000);
 
+// 高亮操作
+const highlightText = (text: string, keyword: string) => {
+  if (!keyword) {
+    return text;
+  }
+  const pattern = new RegExp(`(${keyword})`, "gi");
+  return text.replace(
+    pattern,
+    '<span style="background-color: yellow; font-weight: bold">$1</span>'
+  );
+};
+
 const getLog = async () => {
   await sendLogs({
     pageSize: pageSize,
@@ -79,14 +91,14 @@ const getLog = async () => {
       console.log(page.value);
     } else {
       for (let i = 0; i < res.data.logs.length; i++) {
-        let val = res.data.logs[i].msg;
-        val = val.replace(
-          pageData.message,
-          `<span style="background-color: yellow; font-weight:bold">${pageData.message}</span>`
-          // `<span :style="{ backgroundColor: 'yellow' }">${pageData.message}</span>`
-          // 不需要大括号
-          // 原来是要用反引号
-        );
+        // let val = res.data.logs[i].msg;
+        // val = val.replace(
+        //   pageData.message,
+        //   `<span style="background-color: yellow; font-weight:bold">${pageData.message}</span>`
+        //   // `<span :style="{ backgroundColor: 'yellow' }">${pageData.message}</span>`
+        //   // 不需要大括号
+        //   // 原来是要用反引号
+        // );
         const obj = {
           id: i + 1 + pageSize * (page.value - 1),
           receivedTime: dayjs(res.data.logs[i].timestamp).format(
@@ -94,7 +106,7 @@ const getLog = async () => {
           ),
           dataType: map.get(res.data.logs[i].type),
           // diary: res.data.logs[i].msg
-          diary: val,
+          diary: highlightText(res.data.logs[i].msg, pageData.message),
           appid: res.data.logs[i].appid,
           userid: res.data.logs[i].userid,
           path: res.data.logs[i].extra["path"],
@@ -153,6 +165,11 @@ const search = () => {
   getLog();
 };
 
+// 输入防抖
+const inputKey = debounce(e => {
+  search();
+}, 500);
+
 // 监听搜索框和两个下拉框
 watch(
   () => [
@@ -170,7 +187,7 @@ watch(
       isEnd.value = false;
     } else if (pageData.selectForm.appid && pageData.selectForm.userid) {
       // isEmpty.value = false;
-      search();
+      inputKey();
     }
   }
 );

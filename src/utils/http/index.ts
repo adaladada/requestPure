@@ -9,6 +9,7 @@ import {
   PureHttpResponse,
   PureHttpRequestConfig
 } from "./types.d";
+import { ref } from "vue";
 import { stringify } from "qs";
 import NProgress from "../progress";
 import { getToken, formatToken } from "@/utils/auth";
@@ -33,6 +34,9 @@ const defaultConfig: AxiosRequestConfig = {
   baseURL: VITE_API,
   withCredentials: true
 };
+
+// 弹窗显示状态
+const showPopup = ref(false);
 
 class PureHttp {
   constructor() {
@@ -140,7 +144,8 @@ class PureHttp {
         // 登陆过期
         const code = response.data.code;
         // const msg = response.data.msg;
-        if (code === "A0101") {
+        if (code === "A0101" && !showPopup.value) {
+          showPopup.value = true;
           ElMessageBox.confirm("登陆过期，请重新登陆", "系统提示", {
             confirmButtonText: "确认",
             cancelButtonText: "取消",
