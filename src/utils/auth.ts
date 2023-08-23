@@ -73,6 +73,9 @@ export function removeToken() {
   // Cookies.remove("appid");
   // Cookies.remove("userid");
   // Cookies.remove("message");
+  Cookies.set("appid", "");
+  Cookies.set("userid", "");
+  Cookies.set("message", "");
   sessionStorage.clear();
 }
 

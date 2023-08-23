@@ -3,8 +3,6 @@ import { ref, watch, reactive, onMounted } from "vue";
 import Card from "@/components/Card/index.vue";
 import { throttle } from "@pureadmin/utils";
 import dayjs from "dayjs";
-// import { useRouter } from "vue-router";
-// import { useStore } from "vuex";
 import { getIdSet, sendLogs } from "@/api/user";
 import Cookies from "js-cookie";
 
@@ -30,8 +28,6 @@ const map = new Map([
   [1, "js错误"]
 ]);
 
-// 获取路由实例
-// const router = useRouter();
 // 判断是否滑到底，滑到底为true
 const isBusy = ref(false);
 // 判断是否空页面
@@ -46,10 +42,6 @@ const pageSize = 20;
 const expand = ref(-1);
 // 判断数据是否展示完了
 const isEnd = ref(false);
-
-// const beforeRouteLeave = () => {
-//   store.commit("setInputValue", pageData.selectForm.appid);
-// };
 
 const scrollHandle = e => {
   const clientHeight = e.target.clientHeight;
@@ -169,9 +161,9 @@ watch(
     pageData.message
   ],
   () => {
-    // Cookies.set("appid", pageData.selectForm.appid);
-    // Cookies.set("userid", pageData.selectForm.userid);
-    // Cookies.set("message", pageData.message);
+    Cookies.set("appid", pageData.selectForm.appid);
+    Cookies.set("userid", pageData.selectForm.userid);
+    Cookies.set("message", pageData.message);
     if (!pageData.selectForm.appid || !pageData.selectForm.userid) {
       dataList.value = [];
       page.value = 1;
@@ -196,6 +188,11 @@ const popup = async item => {
 onMounted(() => {
   // isEmpty.value = true;
   getSet();
+  pageData.selectForm = {
+    appid: Cookies.get("appid"),
+    userid: Cookies.get("userid")
+  };
+  pageData.message = Cookies.get("message");
 });
 </script>
 
