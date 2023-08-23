@@ -38,6 +38,9 @@ dependencies:
   js-cookie:
     specifier: ^3.0.5
     version: 3.0.5
+  lodash:
+    specifier: ^4.17.21
+    version: 4.17.21
   mitt:
     specifier: ^3.0.0
     version: 3.0.0
@@ -77,6 +80,9 @@ dependencies:
   vue-types:
     specifier: ^5.1.0
     version: 5.1.0(vue@3.3.4)
+  vuex:
+    specifier: ^4.1.0
+    version: 4.1.0(vue@3.3.4)
 
 devDependencies:
   '@commitlint/cli':
@@ -6743,6 +6749,15 @@ packages:
       '@vue/runtime-dom': 3.3.4
       '@vue/server-renderer': 3.3.4(vue@3.3.4)
       '@vue/shared': 3.3.4
+
+  /vuex@4.1.0(vue@3.3.4):
+    resolution: {integrity: sha512-hmV6UerDrPcgbSy9ORAtNXDr9M4wlNP4pEFKye4ujJF8oqgFFuxDCdOLS3eNoRTtq5O3hoBDh9Doj1bQMYHRbQ==}
+    peerDependencies:
+      vue: ^3.2.0
+    dependencies:
+      '@vue/devtools-api': 6.5.0
+      vue: 3.3.4
+    dev: false
 
   /webpack-sources@3.2.3:
     resolution: {integrity: sha512-/DyMEOrDgLKKIG0fmvtz+4dUX/3Ghozwgm6iPp8KRhvn+eQf9+Q7GWxVNMk3+uCPWfdXYC4ExGBckIXdFEfH1w==}

@@ -53,7 +53,8 @@
     "vue": "^3.3.4",
     "vue-infinite-scroll": "^2.0.2",
     "vue-router": "^4.2.2",
-    "vue-types": "^5.1.0"
+    "vue-types": "^5.1.0",
+    "vuex": "^4.1.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.6.6",

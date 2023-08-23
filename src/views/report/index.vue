@@ -68,6 +68,7 @@ const reportActively = async () => {
           <el-input
             placeholder="请输入appid"
             v-model="pageData.formParam.appid"
+            clearable
           />
         </el-col>
       </el-form-item>
@@ -76,6 +77,7 @@ const reportActively = async () => {
           <el-input
             placeholder="请输入userid"
             v-model="pageData.formParam.userid"
+            clearable
           />
         </el-col>
       </el-form-item>

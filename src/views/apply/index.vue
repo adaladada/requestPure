@@ -62,6 +62,7 @@ const applyID = async () => {
           <el-input
             placeholder="请输入appName"
             v-model="pageData.formParam.appName"
+            clearable
           />
         </el-col>
         <el-button @click="applyID()">申请</el-button>

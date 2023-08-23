@@ -1,11 +1,12 @@
 <script setup lang="ts">
-// import { useGlobal } from "@pureadmin/utils";
 import { ref, watch, reactive, onMounted } from "vue";
 import Card from "@/components/Card/index.vue";
-// import { usePermissionStoreHook } from "@/store/modules/permission";
 import { throttle } from "@pureadmin/utils";
 import dayjs from "dayjs";
+// import { useRouter } from "vue-router";
+// import { useStore } from "vuex";
 import { getIdSet, sendLogs } from "@/api/user";
+import Cookies from "js-cookie";
 
 defineOptions({
   name: "Welcome"
@@ -14,9 +15,7 @@ defineOptions({
 const pageData: any = reactive({
   message: "",
   selectForm: {
-    // appid: "EdmBr03B",
     appid: "",
-    // userid: "abc"
     userid: ""
   },
   selectParam: {
@@ -31,6 +30,8 @@ const map = new Map([
   [1, "js错误"]
 ]);
 
+// 获取路由实例
+// const router = useRouter();
 // 判断是否滑到底，滑到底为true
 const isBusy = ref(false);
 // 判断是否空页面
@@ -45,6 +46,10 @@ const pageSize = 20;
 const expand = ref(-1);
 // 判断数据是否展示完了
 const isEnd = ref(false);
+
+// const beforeRouteLeave = () => {
+//   store.commit("setInputValue", pageData.selectForm.appid);
+// };
 
 const scrollHandle = e => {
   const clientHeight = e.target.clientHeight;
@@ -88,7 +93,6 @@ const getLog = async () => {
           `<span style="background-color: yellow; font-weight:bold">${pageData.message}</span>`
           // `<span :style="{ backgroundColor: 'yellow' }">${pageData.message}</span>`
           // 不需要大括号
-          // `<font color="red">${pageData.message}</font>`
           // 原来是要用反引号
         );
         const obj = {
@@ -165,6 +169,9 @@ watch(
     pageData.message
   ],
   () => {
+    // Cookies.set("appid", pageData.selectForm.appid);
+    // Cookies.set("userid", pageData.selectForm.userid);
+    // Cookies.set("message", pageData.message);
     if (!pageData.selectForm.appid || !pageData.selectForm.userid) {
       dataList.value = [];
       page.value = 1;
@@ -201,6 +208,7 @@ onMounted(() => {
             v-model="pageData.selectForm.appid"
             @change="changeSelect()"
             clearable
+            filterable
           >
             <el-option
               v-for="(item, index) in pageData.selectParam.appIdSet"
@@ -211,7 +219,7 @@ onMounted(() => {
           </el-select>
         </el-form-item>
         <el-form-item label="userid:">
-          <el-select v-model="pageData.selectForm.userid" clearable>
+          <el-select v-model="pageData.selectForm.userid" clearable filterable>
             <el-option
               v-for="(item, index) in pageData.selectParam.userIdSet"
               :key="index"
