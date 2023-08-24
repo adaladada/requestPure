@@ -1,73 +1,79 @@
 <script setup lang="ts">
-import { reactive } from "vue";
+import { ref, reactive, onMounted, onBeforeUnmount } from "vue";
 import { reportAppUser } from "@/api/user";
 import { message } from "@/utils/message";
+import { FormInstance } from "element-plus";
+import { reportRules } from "./utils/rule";
 defineOptions({
   name: "Report"
 });
-const pageData: any = reactive({
-  formParam: {
-    userid: "",
-    appid: "",
-    dialogVisible: false
-  },
-  rules: {
-    userid: [
-      {
-        required: true,
-        message: "userid不能为空",
-        trigger: "blur"
-      },
-      {
-        message: "不能只输入空格",
-        whitespace: true,
-        trigger: "blur"
-      }
-    ],
-    appid: [
-      {
-        required: true,
-        message: "appid不能为空",
-        trigger: "blur"
-      },
-      {
-        message: "不能只输入空格",
-        whitespace: true,
-        trigger: "blur"
-      }
-    ]
-  }
+
+const ruleFormRef = ref<FormInstance>();
+
+const ruleForm = reactive({
+  userid: "",
+  appid: ""
 });
 
-const reportActively = async () => {
-  await reportAppUser({
-    appid: pageData.formParam.appid,
-    userid: pageData.formParam.userid
-  }).then(res => {
-    if (res.code === "00000") {
-      message("上报成功", { type: "success" });
-      pageData.formParam.appid = "";
-      pageData.formParam.userid = "";
+const report = async (formEl: FormInstance | undefined) => {
+  if (!formEl) return;
+  await formEl.validate((valid, fields) => {
+    if (valid) {
+      reportActively();
     } else {
-      message(res.msg, { type: "error" });
+      return fields;
     }
   });
 };
+
+const reportActively = async () => {
+  await reportAppUser({
+    appid: ruleForm.appid,
+    userid: ruleForm.userid
+  }).then(res => {
+    if (res.code === "00000") {
+      message("上报成功", { type: "success" });
+      ruleForm.appid = "";
+      ruleForm.userid = "";
+    } else {
+      if (res.code === "A0108") {
+        message(res.msg, { type: "error" });
+      } else {
+        message("上报失败", { type: "error" });
+      }
+    }
+  });
+};
+
+/** 使用公共函数，避免`removeEventListener`失效 */
+function onkeypress({ code }: KeyboardEvent) {
+  if (code === "Enter") {
+    report(ruleFormRef.value);
+  }
+}
+
+onMounted(() => {
+  window.document.addEventListener("keypress", onkeypress);
+});
+
+onBeforeUnmount(() => {
+  window.document.removeEventListener("keypress", onkeypress);
+});
 </script>
 
 <template>
   <div>
     <el-form
-      ref="pageData.formParam"
+      ref="ruleFormRef"
       label-width="80px"
-      :model="pageData.formParam"
-      :rules="pageData.rules"
+      :model="ruleForm"
+      :rules="reportRules"
     >
       <el-form-item label="appid:" prop="appid">
         <el-col :span="6">
           <el-input
             placeholder="请输入appid"
-            v-model="pageData.formParam.appid"
+            v-model="ruleForm.appid"
             clearable
           />
         </el-col>
@@ -76,13 +82,13 @@ const reportActively = async () => {
         <el-col :span="6">
           <el-input
             placeholder="请输入userid"
-            v-model="pageData.formParam.userid"
+            v-model="ruleForm.userid"
             clearable
           />
         </el-col>
       </el-form-item>
       <el-form-item>
-        <el-button @click="reportActively()">上报</el-button>
+        <el-button @click="report(ruleFormRef)">上报</el-button>
       </el-form-item>
     </el-form>
   </div>

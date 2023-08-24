@@ -4,7 +4,9 @@ import { baseUrlApi } from "./utils";
 export type UserResult = {
   code: string;
   msg: string;
-  data: {};
+  data: {
+    status: boolean;
+  };
 };
 
 export type AppResult = {

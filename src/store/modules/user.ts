@@ -40,6 +40,7 @@ export const useUserStore = defineStore({
                   msg: "成功",
                   success: true,
                   data: {
+                    status: true,
                     username: uploadData.username,
                     roles: ["admin"],
                     accessToken: "eyJhbGciOiJIUzUxMiJ9.admin",
@@ -51,11 +52,8 @@ export const useUserStore = defineStore({
                 setToken(fakeData.data);
                 resolve(fakeData);
               }
-            } else if (data.code === "A0100") {
-              message(data.msg, { type: "error" });
-              reject(data.msg);
-            } else {
-              message(data.msg, { type: "error" });
+            } else if (data.data.status === false) {
+              message("用户名或密码错误", { type: "error" });
               reject(data.msg);
             }
           })

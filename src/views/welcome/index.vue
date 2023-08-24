@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, reactive, onMounted } from "vue";
+import { ref, watch, watchEffect, reactive, onMounted } from "vue";
 import Card from "@/components/Card/index.vue";
 import { throttle, debounce } from "@pureadmin/utils";
 import dayjs from "dayjs";
@@ -28,6 +28,7 @@ const map = new Map([
   [1, "js错误"]
 ]);
 
+const check = ref(false);
 // 判断是否滑到底，滑到底为true
 const isBusy = ref(false);
 // 判断是否空页面
@@ -99,6 +100,7 @@ const getLog = async () => {
         //   // 不需要大括号
         //   // 原来是要用反引号
         // );
+        console.log(res.data.logs[i].msg);
         const obj = {
           id: i + 1 + pageSize * (page.value - 1),
           receivedTime: dayjs(res.data.logs[i].timestamp).format(
@@ -166,31 +168,44 @@ const search = () => {
 };
 
 // 输入防抖
-const inputKey = debounce(e => {
+const inputKey = debounce(() => {
   search();
 }, 500);
 
 // 监听搜索框和两个下拉框
-watch(
-  () => [
-    pageData.selectForm.appid,
-    pageData.selectForm.userid,
-    pageData.message
-  ],
-  () => {
-    Cookies.set("appid", pageData.selectForm.appid);
-    Cookies.set("userid", pageData.selectForm.userid);
-    Cookies.set("message", pageData.message);
-    if (!pageData.selectForm.appid || !pageData.selectForm.userid) {
-      dataList.value = [];
-      page.value = 1;
-      isEnd.value = false;
-    } else if (pageData.selectForm.appid && pageData.selectForm.userid) {
-      // isEmpty.value = false;
-      inputKey();
-    }
+// watch(
+//   () => [
+//     pageData.selectForm.appid,
+//     pageData.selectForm.userid,
+//     pageData.message
+//   ],
+//   () => {
+//     Cookies.set("appid", pageData.selectForm.appid);
+//     Cookies.set("userid", pageData.selectForm.userid);
+//     Cookies.set("message", pageData.message);
+//     if (!pageData.selectForm.appid || !pageData.selectForm.userid) {
+//       dataList.value = [];
+//       page.value = 1;
+//       isEnd.value = false;
+//     } else if (pageData.selectForm.appid && pageData.selectForm.userid) {
+//       // isEmpty.value = false;
+//       inputKey();
+//     }
+//   }
+// );
+
+watchEffect(() => {
+  if (!pageData.selectForm.appid || !pageData.selectForm.userid) {
+    dataList.value = [];
+    page.value = 1;
+    isEnd.value = false;
+  } else if (pageData.selectForm.appid && pageData.selectForm.userid) {
+    inputKey();
   }
-);
+  if (!pageData.message) {
+    inputKey();
+  }
+});
 
 const popup = async item => {
   // expand.value = !expand.value;
@@ -203,13 +218,19 @@ const popup = async item => {
 };
 
 onMounted(() => {
-  // isEmpty.value = true;
   getSet();
-  pageData.selectForm = {
-    appid: Cookies.get("appid"),
-    userid: Cookies.get("userid")
-  };
-  pageData.message = Cookies.get("message");
+  // isEmpty.value = true;
+  // console.log("check:", check.value);
+  // if (!check.value) {
+  //   getSet();
+  //   Cookies.set("check_data", check.value.toString());
+  // }
+  // check.value = true;
+  // pageData.selectForm = {
+  //   appid: Cookies.get("appid"),
+  //   userid: Cookies.get("userid")
+  // };
+  // pageData.message = Cookies.get("message");
 });
 </script>
 
@@ -217,7 +238,7 @@ onMounted(() => {
   <div>
     <el-card :shadow="'never'">
       <el-form ref="form" :inline="true">
-        <el-form-item label="appid:">
+        <el-form-item label="appid:" :rules="{ required: true }">
           <el-select
             v-model="pageData.selectForm.appid"
             @change="changeSelect()"
@@ -232,7 +253,7 @@ onMounted(() => {
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="userid:">
+        <el-form-item label="userid:" :rules="{ required: true }">
           <el-select v-model="pageData.selectForm.userid" clearable filterable>
             <el-option
               v-for="(item, index) in pageData.selectParam.userIdSet"
