@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { ref, watch, watchEffect, reactive, onMounted } from "vue";
+import { ref, watch, reactive, onMounted } from "vue";
 import Card from "@/components/Card/index.vue";
 import { throttle, debounce } from "@pureadmin/utils";
 import dayjs from "dayjs";
 import { getIdSet, sendLogs } from "@/api/user";
-import Cookies from "js-cookie";
+// import Cookies from "js-cookie";
+// import { onBeforeRouteLeave } from "vue-router";
+import { useRoute } from "vue-router";
 
 defineOptions({
   name: "Welcome"
@@ -28,7 +30,6 @@ const map = new Map([
   [1, "js错误"]
 ]);
 
-const check = ref(false);
 // 判断是否滑到底，滑到底为true
 const isBusy = ref(false);
 // 判断是否空页面
@@ -43,6 +44,8 @@ const pageSize = 20;
 const expand = ref(-1);
 // 判断数据是否展示完了
 const isEnd = ref(false);
+
+const route = useRoute();
 
 const scrollHandle = e => {
   const clientHeight = e.target.clientHeight;
@@ -89,7 +92,7 @@ const getLog = async () => {
     const arr = [];
     if (res.data.logs.length === 0) {
       isEnd.value = true;
-      console.log(page.value);
+      // console.log(page.value);
     } else {
       for (let i = 0; i < res.data.logs.length; i++) {
         // let val = res.data.logs[i].msg;
@@ -100,7 +103,7 @@ const getLog = async () => {
         //   // 不需要大括号
         //   // 原来是要用反引号
         // );
-        console.log(res.data.logs[i].msg);
+        // console.log(res.data.logs[i].msg);
         const obj = {
           id: i + 1 + pageSize * (page.value - 1),
           receivedTime: dayjs(res.data.logs[i].timestamp).format(
@@ -149,6 +152,7 @@ function changeSelect() {
   // console.log(brr);
   if (!pageData.selectForm.appid) {
     pageData.selectForm.userid = "";
+    pageData.selectParam.userIdSet = [];
   }
   for (let i = 0; i < arr.length; i++) {
     if (arr[i]["appid"] === pageData.selectForm.appid) {
@@ -173,38 +177,30 @@ const inputKey = debounce(() => {
 }, 500);
 
 // 监听搜索框和两个下拉框
-// watch(
-//   () => [
-//     pageData.selectForm.appid,
-//     pageData.selectForm.userid,
-//     pageData.message
-//   ],
-//   () => {
-//     Cookies.set("appid", pageData.selectForm.appid);
-//     Cookies.set("userid", pageData.selectForm.userid);
-//     Cookies.set("message", pageData.message);
-//     if (!pageData.selectForm.appid || !pageData.selectForm.userid) {
-//       dataList.value = [];
-//       page.value = 1;
-//       isEnd.value = false;
-//     } else if (pageData.selectForm.appid && pageData.selectForm.userid) {
-//       // isEmpty.value = false;
-//       inputKey();
-//     }
-//   }
-// );
+watch(
+  () => [
+    pageData.selectForm.appid,
+    pageData.selectForm.userid,
+    pageData.message
+  ],
+  () => {
+    sessionStorage.setItem("appid", pageData.selectForm.appid);
+    sessionStorage.setItem("userid", pageData.selectForm.userid);
+    sessionStorage.setItem("message", pageData.message);
+    if (!pageData.selectForm.appid || !pageData.selectForm.userid) {
+      dataList.value = [];
+      page.value = 1;
+      isEnd.value = false;
+    } else if (pageData.selectForm.appid && pageData.selectForm.userid) {
+      // isEmpty.value = false;
+      inputKey();
+    }
+  }
+);
 
-watchEffect(() => {
-  if (!pageData.selectForm.appid || !pageData.selectForm.userid) {
-    dataList.value = [];
-    page.value = 1;
-    isEnd.value = false;
-  } else if (pageData.selectForm.appid && pageData.selectForm.userid) {
-    inputKey();
-  }
-  if (!pageData.message) {
-    inputKey();
-  }
+watch(route, (to, from) => {
+  console.log("to", to.path);
+  console.log("from", from.path);
 });
 
 const popup = async item => {
@@ -217,6 +213,18 @@ const popup = async item => {
   // maxHeight.value = 300;
 };
 
+// onBeforeRouteLeave(async (to, from, next) => {
+//   // sessionStorage.setItem("appid", pageData.selectForm.appid);
+//   Cookies.set("appid", pageData.selectForm.appid);
+//   next();
+// });
+
+// onBeforeRouteUpdate(async (to, from) => {
+//   // pageData.selectForm.appid = sessionStorage.getItem("appid");
+//   console.log(2);
+//   pageData.selectForm.appid = Cookies.get("appid");
+// });
+
 onMounted(() => {
   getSet();
   // isEmpty.value = true;
@@ -226,11 +234,11 @@ onMounted(() => {
   //   Cookies.set("check_data", check.value.toString());
   // }
   // check.value = true;
-  // pageData.selectForm = {
-  //   appid: Cookies.get("appid"),
-  //   userid: Cookies.get("userid")
-  // };
-  // pageData.message = Cookies.get("message");
+  pageData.selectForm = {
+    appid: sessionStorage.getItem("appid"),
+    userid: sessionStorage.getItem("userid")
+  };
+  pageData.message = sessionStorage.getItem("message");
 });
 </script>
 

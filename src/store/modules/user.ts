@@ -49,6 +49,9 @@ export const useUserStore = defineStore({
                   }
                 };
                 message("登录成功", { type: "success" });
+                sessionStorage.setItem("appid", "");
+                sessionStorage.setItem("userid", "");
+                sessionStorage.setItem("message", "");
                 setToken(fakeData.data);
                 resolve(fakeData);
               }
