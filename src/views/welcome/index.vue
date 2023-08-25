@@ -4,7 +4,6 @@ import Card from "@/components/Card/index.vue";
 import { throttle, debounce } from "@pureadmin/utils";
 import dayjs from "dayjs";
 import { getIdSet, sendLogs } from "@/api/user";
-import { useRoute } from "vue-router";
 
 defineOptions({
   name: "Welcome"
@@ -146,10 +145,7 @@ function changeSelect() {
   // console.log(brr);
   pageData.selectForm.userid = "";
   pageData.selectParam.userIdSet = [];
-  // if (!pageData.selectForm.appid) {
-  //   pageData.selectForm.userid = "";
-  //   pageData.selectParam.userIdSet = [];
-  // }
+
   for (let i = 0; i < arr.length; i++) {
     if (arr[i]["appid"] === pageData.selectForm.appid) {
       pageData.selectParam = {
@@ -180,6 +176,7 @@ watch(
     pageData.message
   ],
   () => {
+    getSet();
     sessionStorage.setItem("appid", pageData.selectForm.appid);
     sessionStorage.setItem("userid", pageData.selectForm.userid);
     sessionStorage.setItem("message", pageData.message);
