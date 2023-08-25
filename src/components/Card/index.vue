@@ -40,6 +40,7 @@
   padding-top: 5px;
   position: relative;
   float: left;
+  width: 200px;
 }
 .time {
   left: 100px;
@@ -58,7 +59,7 @@
 }
 .content {
   top: 37px;
-  left: -266px;
+  left: -340px;
   position: relative;
 }
 </style>

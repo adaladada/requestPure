@@ -4,8 +4,6 @@ import Card from "@/components/Card/index.vue";
 import { throttle, debounce } from "@pureadmin/utils";
 import dayjs from "dayjs";
 import { getIdSet, sendLogs } from "@/api/user";
-// import Cookies from "js-cookie";
-// import { onBeforeRouteLeave } from "vue-router";
 import { useRoute } from "vue-router";
 
 defineOptions({
@@ -45,8 +43,6 @@ const expand = ref(-1);
 // 判断数据是否展示完了
 const isEnd = ref(false);
 
-const route = useRoute();
-
 const scrollHandle = e => {
   const clientHeight = e.target.clientHeight;
   // 内容可视区域的高度
@@ -61,13 +57,13 @@ const scrollHandle = e => {
     isBusy.value = true;
     setTimeout(() => {
       getLog();
-    }, 1000);
+    }, 500);
   } else {
     isBusy.value = false;
   }
 };
 
-const throttleHandle = throttle(scrollHandle, 1000);
+const throttleHandle = throttle(scrollHandle, 500);
 
 // 高亮操作
 const highlightText = (text: string, keyword: string) => {
@@ -114,9 +110,7 @@ const getLog = async () => {
           diary: highlightText(res.data.logs[i].msg, pageData.message),
           appid: res.data.logs[i].appid,
           userid: res.data.logs[i].userid,
-          path: res.data.logs[i].extra["path"],
-          stack: res.data.logs[i].extra["stack"],
-          userAgent: res.data.logs[i].extra["userAgent"]
+          extra: res.data.logs[i].extra
         };
         arr.push(obj);
       }
@@ -198,11 +192,6 @@ watch(
   }
 );
 
-watch(route, (to, from) => {
-  console.log("to", to.path);
-  console.log("from", from.path);
-});
-
 const popup = async item => {
   // expand.value = !expand.value;
   if (expand.value === item.id) {
@@ -213,27 +202,8 @@ const popup = async item => {
   // maxHeight.value = 300;
 };
 
-// onBeforeRouteLeave(async (to, from, next) => {
-//   // sessionStorage.setItem("appid", pageData.selectForm.appid);
-//   Cookies.set("appid", pageData.selectForm.appid);
-//   next();
-// });
-
-// onBeforeRouteUpdate(async (to, from) => {
-//   // pageData.selectForm.appid = sessionStorage.getItem("appid");
-//   console.log(2);
-//   pageData.selectForm.appid = Cookies.get("appid");
-// });
-
 onMounted(() => {
   getSet();
-  // isEmpty.value = true;
-  // console.log("check:", check.value);
-  // if (!check.value) {
-  //   getSet();
-  //   Cookies.set("check_data", check.value.toString());
-  // }
-  // check.value = true;
   pageData.selectForm = {
     appid: sessionStorage.getItem("appid"),
     userid: sessionStorage.getItem("userid")
@@ -286,14 +256,9 @@ onMounted(() => {
         @scroll="throttleHandle"
         v-if="dataList.length > 0"
       >
-        <div
-          class="content"
-          v-for="item in dataList"
-          :key="item.id"
-          @click="popup(item)"
-        >
+        <div class="content" v-for="item in dataList" :key="item.id">
           <!-- <div style="width: 100%; height: 1rem">{{ item }}</div> -->
-          <Card>
+          <Card @click="popup(item)">
             <template #type> 日志类型: {{ item.dataType }} </template>
             <template #time>
               {{ item.receivedTime }}
@@ -308,9 +273,9 @@ onMounted(() => {
             <div class="extraContent">
               <p>appid: {{ item.appid }}</p>
               <p>userid: {{ item.userid }}</p>
-              <p>path: {{ item.path }}</p>
-              <p>stack: {{ item.stack }}</p>
-              <p>userAgent: {{ item.userAgent }}</p>
+              <div v-for="(value, key) in item.extra" :key="key">
+                {{ key }}: {{ value }}
+              </div>
             </div>
           </div>
         </div>
@@ -374,7 +339,7 @@ onMounted(() => {
 .extra {
   width: 100%;
   margin: 0 auto;
-  min-height: 120px;
+  // min-height: 120px;
   overflow: hidden;
   transition: max-height 1s ease-out;
   position: relative;
