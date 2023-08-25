@@ -144,10 +144,12 @@ function changeSelect() {
   const arr = pageData.selectParam.idSet;
   const brr = pageData.selectParam.appIdSet;
   // console.log(brr);
-  if (!pageData.selectForm.appid) {
-    pageData.selectForm.userid = "";
-    pageData.selectParam.userIdSet = [];
-  }
+  pageData.selectForm.userid = "";
+  pageData.selectParam.userIdSet = [];
+  // if (!pageData.selectForm.appid) {
+  //   pageData.selectForm.userid = "";
+  //   pageData.selectParam.userIdSet = [];
+  // }
   for (let i = 0; i < arr.length; i++) {
     if (arr[i]["appid"] === pageData.selectForm.appid) {
       pageData.selectParam = {
