@@ -145,6 +145,8 @@ class PureHttp {
         const code = response.data.code;
         // const msg = response.data.msg;
         if (code === "A0101" && !showPopup.value) {
+          // if (code === "A0101" && !sessionStorage.getItem("showPopup")) {
+          // sessionStorage.setItem("showPopup", "1");
           showPopup.value = true;
           ElMessageBox.confirm("登陆过期，请重新登陆", "系统提示", {
             confirmButtonText: "确认",

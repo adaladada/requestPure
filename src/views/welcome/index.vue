@@ -176,7 +176,6 @@ watch(
     pageData.message
   ],
   () => {
-    getSet();
     sessionStorage.setItem("appid", pageData.selectForm.appid);
     sessionStorage.setItem("userid", pageData.selectForm.userid);
     sessionStorage.setItem("message", pageData.message);
