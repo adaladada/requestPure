@@ -14,21 +14,6 @@
     <div class="content">
       <slot name="content" />
     </div>
-    <!-- <div class="appid">
-      <slot name="appid" />
-    </div>
-    <div class="userid">
-      <slot name="userid" />
-    </div>
-    <div class="path">
-      <slot name="path" />
-    </div>
-    <div class="stack">
-      <slot name="stack" />
-    </div>
-    <div class="userAgent">
-      <slot name="userAgent" />
-    </div> -->
   </div>
 </template>
 

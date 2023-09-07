@@ -1,40 +1,36 @@
-<h1>vue-pure-admin精简版（非国际化版本）</h1>
 
-[![license](https://img.shields.io/github/license/pure-admin/vue-pure-admin.svg)](LICENSE)
+# 日志管理系统管理端部分
+### 项目需求分析
+1. 输入用户名和密码进行登陆
+2. 管理员填写应用名并申请appid
+3. 当用户联系到我们，我们需要将日志上报的流程推送到用户的应用上，在通过userid校验后允许用户上传日志。
+4. 对用户上传的日志进行解析与展示，并实现简单的关键字检索（支持模糊匹配）
 
-**中文** | [English](./README.en-US.md)
+### 技术方案
+管理系统使用vue-pure-admin模版，在模版的基础上修改。
+项目原型图：
+![](assets/16940495257205.jpg)
+### 项目展示
+登陆界面
+![](assets/16940509605191.jpg)
+首页
+无数据状态
+![](assets/16940509712460.jpg)
+有数据状态
+![](assets/16940510719889.jpg)
+点击每一行会展开额外信息：
+![](assets/16940519083112.jpg)
 
-## 介绍
+查询功能
+输入关键字进行大小写不敏感的日志信息匹配
+appid申请页面
+![](assets/16940509829167.jpg)
+规定appName输入长度在4-50之间
+![](assets/16940510719889.jpg)
+申请成功会返回appid
+![](assets/16940519542828.jpg)
 
-精简版是基于 [vue-pure-admin](https://github.com/pure-admin/vue-pure-admin) 提炼出的架子，包含主体功能，更适合实际项目开发，打包后的大小在全局引入 [element-plus](https://element-plus.org) 的情况下仍然低于 `2.3MB`，并且会永久同步完整版的代码。开启 `brotli` 压缩和 `cdn` 替换本地库模式后，打包大小低于 `350kb`
-
-## 版本选择
-
-当前是非国际化版本，如果您需要国际化版本 [请点击](https://github.com/pure-admin/pure-admin-thin/tree/i18n)
-
-## 配套视频
-
-- [点我查看教程](https://www.bilibili.com/video/BV1kg411v7QT)
-- [点我查看 UI 设计](https://www.bilibili.com/video/BV17g411T7rq)
-
-## 配套保姆级文档
-
-- [查看文档](https://yiming_chang.gitee.io/pure-admin-doc)
-
-## 预览
-
-- [查看预览](https://pure-admin-thin.netlify.app/#/login)
-
-## 维护者
-
-[xiaoxian521](https://github.com/xiaoxian521)
-
-## ⚠️ 注意
-
-- 精简版不接受任何 `issues` 和 `pr`，如果有问题请到完整版 [issues](https://github.com/pure-admin/vue-pure-admin/issues/new/choose) 去提，谢谢！
-
-## 许可证
-
-原则上不收取任何费用及版权，可商用，不过如需二次开源（比如用此平台二次开发并开源，要求前端代码必须开源免费）请联系作者获取许可！（免费，走个记录而已）
-
-[MIT © 2020-present, pure-admin](./LICENSE)
+下发日志上报页面
+![](assets/16940509897163.jpg)
+如果appid不存在会弹出错误信息
+![](assets/16940510719889.jpg)
